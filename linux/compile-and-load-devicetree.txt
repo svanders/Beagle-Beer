@@ -1,0 +1,64 @@
+Step 1 - Compile the device tree binary.
+------
+
+Copy the no-cape.dts to the beagle board black and compile it to the correct location
+$> dtc -@ -O dtb -I dts -o /lib/firmware/nocape-w1-00A0.dtbo nocape-w1-00A0.dts 
+ 
+Step 2 - Load the device tree overlay 
+------
+ 
+$> echo nocape-w1 > /sys/devices/bone_capemgr.9/slots 
+ 
+check dmesg to see if it loaded ok
+
+$> dmesg
+
+You should see something like
+
+...
+72.478394] bone-capemgr bone_capemgr.9: part_number 'nocape-w1', version 'N/A'
+[   72.478465] bone-capemgr bone_capemgr.9: slot #6: generic override
+[   72.478482] bone-capemgr bone_capemgr.9: bone: Using override eeprom data at slot 6
+[   72.478501] bone-capemgr bone_capemgr.9: slot #6: 'Override Board Name,00A0,Override Manuf,nocape-w1'
+[   72.478634] bone-capemgr bone_capemgr.9: slot #6: Requesting part number/version based 'nocape-w1-00A0.dtbo
+[   72.478652] bone-capemgr bone_capemgr.9: slot #6: Requesting firmware 'nocape-w1-00A0.dtbo' for board-name 'Override Board Name', version '00A0'
+[   72.488126] bone-capemgr bone_capemgr.9: slot #6: dtbo 'nocape-w1-00A0.dtbo' loaded; converting to live tree
+[   72.488314] bone-capemgr bone_capemgr.9: slot #6: #2 overlays
+[   72.492227] of_get_named_gpio_flags exited with status 45
+[   72.492247] of_get_named_gpio_flags: can't parse gpios property
+[   72.496540] bone-capemgr bone_capemgr.9: slot #6: Applied #2 overlays.
+...
+ 
+Step 3 - Find the device and read it
+-------
+
+Plug a w1 deivce into P8 pin 11
+
+The device should have a node created for it in  /sys/devices/w1_bus_master1 
+
+$> ls -l /sys/devices/w1_bus_master1 
+
+rwxr-xr-x 3 root root    0 Jan  1 00:03 28-000002a6c659
+lrwxrwxrwx 1 root root    0 Jan  1 00:01 driver -> ../../bus/w1/drivers/w1_master_driver
+drwxr-xr-x 2 root root    0 Jan  1 00:01 power
+...
+
+So for me the device node is 28-000002a6c659, which is the ID/address of the device.  If 
+you have multiple w1 devices connected to pin 11, there should be multiple device nodes
+
+$> cat /sys/devices/w1_bus_master1/28-000002a6c659/w1_slave 
+
+29 01 00 a5 7f ff 07 10 0e : crc=0e YES
+29 01 00 a5 7f ff 07 10 0e t=18562
+
+my device is a DS1820 temperature sensore, so the t=18562 is the bit I'm interested in.
+
+Step 4 - Write some software to use it
+-------
+
+When I get around to it there will be an application that parses the temp sensor read
+out and make use of it.  
+
+Thanks to Russell Senior for teaching me how to do this.
+https://groups.google.com/forum/?fromgroups=#!searchin/beagleboard/w1/beagleboard/99zYYVH_m5A/39HTEXl1Fd0J
+
