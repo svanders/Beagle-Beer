@@ -1,0 +1,26 @@
+Turn off unnecessary  services to make the BBB boot faster
+-----------------------------------------------------------
+
+systemctl disable mpd.service
+systemctl disable cloud9.service
+systemctl disable bonescript-autorun.service
+systemctl disable gateone.service
+systemctl disable gdm.service
+
+Add Java
+---------
+
+Add the libs feed by creating the file /etc/opkg/libs-feed.conf
+
+With the following content
+
+src/gz libs http://www.angstrom-distribution.org/feeds/v2012.05/ipk/eglibc/armv7a/base/
+
+Then update opkg and install java
+
+opkg update
+opkg install openjdk-6-jdk
+opkg install openjdk-6-java
+opkg install openjdk-6-vm-zero
+
+
