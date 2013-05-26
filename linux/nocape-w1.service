@@ -1,0 +1,10 @@
+[Unit]
+Description=Load the nocape-w1 device tree
+After=syslog.target 
+
+[Service]
+Type=simple
+ExecStart=/opt/nocap-w1.sh
+
+[Install]
+WantedBy=multi-user.target

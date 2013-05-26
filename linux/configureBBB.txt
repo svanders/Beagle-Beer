@@ -7,6 +7,26 @@ systemctl disable bonescript-autorun.service
 systemctl disable gateone.service
 systemctl disable gdm.service
 
+Create nocape-w1 service
+-------------------------
+
+create the file nocape-w1.sh in /opt
+
+create the nocape-w1.service file in /lib/systemd/system
+
+create the required symbolic link to /etc/systemd/system
+
+ln -s /lib/systemd/system/nocape-w1.service  /etc/systemd/system/nocape-w1.service
+
+Load the no cape device tree using the systemctl
+systemctl start nocape-w1.service
+
+Make the loading part of startup (ie automated)
+systemctl enable nocape-w1.service
+
+
+
+
 Add Java
 ---------
 
