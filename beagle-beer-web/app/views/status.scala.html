@@ -1,0 +1,14 @@
+@(vmStats: List[(String, Any)])
+
+@main("Beagle Beer - Status", "Status") {
+
+
+
+  <table>
+    @for(stat <- vmStats) {
+        <tr><th>@stat._1</th><td>@stat._2</td></tr>
+    }
+
+  </table>
+
+}
