@@ -20,32 +20,26 @@ object Application extends Controller {
     val memory = ManagementFactory.getMemoryMXBean()
 
     val vmStats = List(
+      ("Operating System:", os.getName +  os.getVersion),
+      ("Architecture:", os.getArch),
+      ("Number of processors:", os.getAvailableProcessors),
       ("Virtual Machine:", runtime.getVmName),
       ("Vendor:", runtime.getVmVendor),
-      ("version", runtime.getVmVersion),
+      ("Version", runtime.getVmVersion),
       ("Up time:", runtime.getUptime().toString() + "ms"),
-      ("JIT compiler:", compile.getName),
-      ("Total compile time:", compile.getTotalCompilationTime().toString() + "ms"),
-      ("Live threads:", threads.getThreadCount),
-      ("Current classes loaded:", classes.getLoadedClassCount),
-      ("Peak:", threads.getPeakThreadCount),
-      ("Total classes loaded:", classes.getTotalLoadedClassCount),
-      ("Daemon Threads:", threads.getDaemonThreadCount),
-      ("Total classes unloaded:", classes.getUnloadedClassCount),
-      ("Total threads started:", threads.getTotalStartedThreadCount),
       ("Current heap size:", memory.getHeapMemoryUsage().getUsed),
       ("Committed memory:", memory.getHeapMemoryUsage.getCommitted),
       ("Maximum heap size:",memory.getHeapMemoryUsage().getMax),
-      ("Pending finalisation:", memory.getObjectPendingFinalizationCount),
-      ("Operating System:", os.getName +  os.getVersion),
-//      ("Total physical memory:", os.getTotalPhysicalMemorySize),
-      ("Architecture:", os.getArch),
-//      ("Free physical memory:", os.getFreePhysicalMemorySize),
-      ("Number of processors:", os.getAvailableProcessors)
-//      ("Total swap space:", os.getTotalSwapSpaceSize)),
-//      ("Committed virtual memory:", os.getCommittedVirtualMemorySize),
-//       ("Free swap space:", os.getFreeSwapSpaceSize),
-//        ("Process CPU time:", os.get),
+      ("JIT compiler:", compile.getName),
+      ("Total compile time:", compile.getTotalCompilationTime().toString() + "ms"),
+      ("Live threads:", threads.getThreadCount),
+      ("Daemon Threads:", threads.getDaemonThreadCount),
+      ("Total threads started:", threads.getTotalStartedThreadCount),
+      ("Current classes loaded:", classes.getLoadedClassCount),
+      ("Peak:", threads.getPeakThreadCount),
+      ("Total classes loaded:", classes.getTotalLoadedClassCount),
+      ("Total classes unloaded:", classes.getUnloadedClassCount),
+      ("Pending finalisation:", memory.getObjectPendingFinalizationCount)
     )
 
     Ok(views.html.status(vmStats))

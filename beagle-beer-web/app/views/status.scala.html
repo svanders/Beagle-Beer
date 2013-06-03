@@ -4,11 +4,10 @@
 
 
 
-  <table>
-    @for(stat <- vmStats) {
-        <tr><th>@stat._1</th><td>@stat._2</td></tr>
-    }
-
+  <table class="table table-striped table-bordered table-condensed">
+    <tbody>
+    @for(stat <- vmStats) { <tr><th>@stat._1</th><td>@stat._2</td></tr> }
+    </tbody>
   </table>
 
 }
