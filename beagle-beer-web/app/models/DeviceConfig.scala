@@ -8,7 +8,7 @@ case class DeviceConfig(sensorsDir: String)
 
 object DeviceConfig {
 
-  var config = new DeviceConfig("/sys/devices/w1_bus_master1 ")
+  var config = new DeviceConfig("/sys/devices/w1_bus_master1")
 
 
 

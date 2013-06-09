@@ -11,7 +11,7 @@ import scala.io.Source
  */
 class DS1820Spec extends Specification {
 
-  val reader: DS1820Reader = new DS1820Reader("test/data/28-000002a6c659/w1-slave")
+  val reader: DS1820Reader = new DS1820Reader("test/data/28-000002a6c659/w1_slave")
   val scanner: DS1820Scanner = new DS1820Scanner("test/data/")
 
 

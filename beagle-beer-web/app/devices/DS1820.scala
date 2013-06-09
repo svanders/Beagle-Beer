@@ -47,7 +47,7 @@ class DS1820Scanner(location: String) {
     val dir: File = new File(location)
     require(dir.isDirectory)
     val devices = (dir.listFiles().map(f => f.getAbsolutePath)).filter(isDS1820).toList
-    devices.map(s => s + "/w1-slave")
+    devices.map(s => s + "/w1_slave")
   }
 
   def isDS1820(name: String): Boolean = {
