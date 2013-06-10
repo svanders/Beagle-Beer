@@ -20,7 +20,7 @@ class DS1820Reader(deviceLocation: String) {
     if (! crcLine.endsWith("YES")) {
       throw new RuntimeException("CRC error on DS1820 read")
     }
-    val tempChars = temperatureLine.takeRight(5)
+    val tempChars = temperatureLine.substring(temperatureLine.indexOf("t=") + 2)
     tempChars.toFloat / 1000
   }
 
