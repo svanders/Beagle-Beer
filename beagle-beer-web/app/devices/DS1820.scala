@@ -4,6 +4,9 @@ import scala.io.Source
 import java.io.File
 import scala.util.matching.Regex
 
+import scala.concurrent._
+import ExecutionContext.Implicits.global
+
 /**
  * Reads the temperature from a DS1820 1-Wire device.  Assumes the actual control
  * of the device is provided via the OS, so really this is a specialised
@@ -24,6 +27,10 @@ class DS1820Reader(deviceLocation: String) {
     tempChars.toFloat / 1000
   }
 
+  def readAsync: Future[Float] = {
+    future { read }
+  }
+
 }
 
 /**
@@ -34,25 +41,39 @@ class DS1820Scanner(location: String) {
   require(location != null)
 
   def readAll(): Map[String, Float] = {
-    val pattern = new Regex("28-\\w{12}")
     val readings = for {
-      sensor <- scan
-      name <- pattern.findFirstIn(sensor)
-    }  yield (name, new DS1820Reader(sensor).read)
+      (sensor, path) <- scan
+    }  yield (sensor, new DS1820Reader(path).read)
+    readings.toMap
+  }
+
+  def readAllAsync: Map[String, Future[Float]] = {
+    val readings = for {
+      (sensor, path) <- scan
+    }  yield (sensor, new DS1820Reader(path).readAsync)
     readings.toMap
   }
 
 
-  def scan: List[String] = {
+  def scan: Map[String, String] = {
     val dir: File = new File(location)
     require(dir.isDirectory)
-    val devices = (dir.listFiles().map(f => f.getAbsolutePath)).filter(isDS1820).toList
-    devices.map(s => s + "/w1_slave")
+    val devicePaths = for {
+      file <- dir.listFiles
+      if isDS1820(file.getName)
+    } yield (file.getName, file.getAbsolutePath + "/w1_slave")
+
+    devicePaths.toMap
+  }
+
+
+  def extractDeviceId(path: String): Option[String] = {
+    val pattern = new Regex("28-\\w{12}")
+    pattern.findFirstIn(path)
   }
 
   def isDS1820(name: String): Boolean = {
-     val pattern = new Regex("28-\\w{12}")
-    pattern.findFirstIn(name) match {
+    extractDeviceId(name) match {
       case Some(_) => true
       case None => false
     }
