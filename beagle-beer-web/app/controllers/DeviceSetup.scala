@@ -4,12 +4,12 @@ import play.api.mvc.{Action, Controller}
 import models.DeviceConfig
 import play.api.data._
 import play.api.data.Forms._
-import views.html
 import devices.DS1820Scanner
 import java.io.File
-import play.api.Logger
 import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
+
+import org.slf4j.LoggerFactory;
 
 /**
  * A Play Controller to allow setup of the BeagleBoard.
@@ -17,7 +17,7 @@ import ExecutionContext.Implicits.global
  */
 object DeviceSetup extends Controller {
 
-  //  val log = org.apache.log4j.Logger.getLogger("DeviceSetup");
+  val log = LoggerFactory.getLogger(this.getClass)
 
   def view = Action {
     implicit request =>
@@ -47,7 +47,7 @@ object DeviceSetup extends Controller {
       } yield (d, extractFutureFloat(f))
       reads.toMap
     } else {
-      Logger.error("Directory " + sensorDir + " not found")
+      log.error("Directory " + sensorDir + " not found")
       Map()
     }
 
@@ -59,7 +59,7 @@ object DeviceSetup extends Controller {
       case value => result = value
     }
     f.onFailure {
-      case e => Logger.error("Could not read Future", e)
+      case e => log.error("Could not read Future", e)
     }
     result
   }
