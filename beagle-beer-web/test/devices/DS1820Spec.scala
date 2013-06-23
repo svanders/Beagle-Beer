@@ -2,9 +2,6 @@ package devices
 
 import org.specs2.mutable._
 
-import play.api.test._
-import play.api.test.Helpers._
-import scala.io.Source
 
 /**
  * Tests that the DS1820Reader can properly read the device output.
@@ -18,10 +15,10 @@ class DS1820Spec extends Specification {
 
    "The reader" should {
      "be able to read the output from a DS1820 temperature sensor" in {
-       reader.read  must be equalTo(20.111f) }
+       reader.read  must be equalTo(("28-000002a6c659", 20.111f)) }
        
      "be able to read negative temperatures" in {
-       negativeReader.read must be equalTo(-22.123f)
+       negativeReader.read must be equalTo(("28-000002a6c660", -22.123f))
      }  
    }
 
@@ -32,7 +29,7 @@ class DS1820Spec extends Specification {
     }
 
     "be able to read all devices in a dirctory" in {
-      val readings = scanner.readAll()
+      val readings = scanner.readAll
       readings must have size(2)
     }
   }

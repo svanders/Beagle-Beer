@@ -6,6 +6,7 @@ import scala.util.matching.Regex
 
 import scala.concurrent._
 import ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 /**
  * Reads the temperature from a DS1820 1-Wire device.  Assumes the actual control
@@ -15,8 +16,11 @@ import ExecutionContext.Implicits.global
  */
 class DS1820Reader(deviceLocation: String) {
    require(deviceLocation != null)
+   require(DS1820NameParser.isDS1820(deviceLocation))
 
-  def read: Float = {
+  val deviceId: String = DS1820NameParser.extractDeviceId(deviceLocation)
+
+  def read: (String, Float) = {
     val lines = Source.fromFile(deviceLocation).getLines()
     val crcLine = lines.next
     val temperatureLine = lines.next
@@ -24,11 +28,11 @@ class DS1820Reader(deviceLocation: String) {
       throw new RuntimeException("CRC error on DS1820 read")
     }
     val tempChars = temperatureLine.substring(temperatureLine.indexOf("t=") + 2)
-    tempChars.toFloat / 1000
+    (deviceId, tempChars.toFloat / 1000)
   }
 
-  def readAsync: Future[Float] = {
-    future { read }
+  def readAsync: Future[(String, Float)] = {
+    future { blocking { read } }
   }
 
 }
@@ -40,44 +44,53 @@ class DS1820Reader(deviceLocation: String) {
 class DS1820Scanner(location: String) {
   require(location != null)
 
-  def readAll(): Map[String, Float] = {
-    val readings = for {
-      (sensor, path) <- scan
-    }  yield (sensor, new DS1820Reader(path).read)
-    readings.toMap
+  def readAll: List[(String, Float)] = {
+    readAll(scan)
   }
 
-  def readAllAsync: Map[String, Future[Float]] = {
-    val readings = for {
-      (sensor, path) <- scan
-    }  yield (sensor, new DS1820Reader(path).readAsync)
-    readings.toMap
+  def readAll(devices: List[String]): List[(String, Float)] = {
+    val readCount = devices.size
+    val futureReads = Future.sequence(readAllAsync(devices))
+    Await.result(futureReads, readCount seconds)
   }
 
+  private def readAllAsync(devices: List[String]): List[Future[(String, Float)]] = {
+    devices.map {
+      path =>   new DS1820Reader(path).readAsync
+    }
+  }
 
-  def scan: Map[String, String] = {
+  def scan: List[String] = {
     val dir: File = new File(location)
     require(dir.isDirectory)
     val devicePaths = for {
       file <- dir.listFiles
-      if isDS1820(file.getName)
-    } yield (file.getName, file.getAbsolutePath + "/w1_slave")
+      if DS1820NameParser.isDS1820(file.getName)
+    } yield file.getAbsolutePath + "/w1_slave"
 
-    devicePaths.toMap
+    devicePaths.toList
   }
 
+}
 
-  def extractDeviceId(path: String): Option[String] = {
-    val pattern = new Regex("28-\\w{12}")
-    pattern.findFirstIn(path)
+object DS1820NameParser {
+
+  def extractDeviceId(path: String): String = {
+    extractDeviceIdOption(path) match {
+       case Some(id) => id
+       case None => throw new RuntimeException("Path '" + path + "' does not represent a DS1820")
+    }
   }
 
   def isDS1820(name: String): Boolean = {
-    extractDeviceId(name) match {
+    extractDeviceIdOption(name) match {
       case Some(_) => true
       case None => false
     }
   }
 
-
+  def extractDeviceIdOption(path: String): Option[String] = {
+    val pattern = new Regex("28-\\w{12}")
+    pattern.findFirstIn(path)
+  }
 }

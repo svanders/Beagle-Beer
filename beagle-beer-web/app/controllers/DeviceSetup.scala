@@ -6,8 +6,6 @@ import play.api.data._
 import play.api.data.Forms._
 import devices.DS1820Scanner
 import java.io.File
-import scala.concurrent.{ExecutionContext, Future}
-import ExecutionContext.Implicits.global
 
 import org.slf4j.LoggerFactory;
 
@@ -40,12 +38,9 @@ object DeviceSetup extends Controller {
   def readDevices: Map[String, Float] = {
     val sensorDir = DeviceConfig.config.sensorsDir
     if ((new File(sensorDir)).isDirectory) {
-      val asyncReads = new DS1820Scanner(sensorDir).readAllAsync
-      val reads = for {
-        d <- asyncReads.keys
-        f <- asyncReads.get(d)
-      } yield (d, extractFutureFloat(f))
-      reads.toMap
+      val asyncReads = new DS1820Scanner(sensorDir).readAll
+
+      asyncReads.toMap
     } else {
       log.error("Directory " + sensorDir + " not found")
       Map()
@@ -53,16 +48,7 @@ object DeviceSetup extends Controller {
 
   }
 
-  def extractFutureFloat(f: Future[Float]): Float = {
-    var result = Float.NaN
-    f.onSuccess {
-      case value => result = value
-    }
-    f.onFailure {
-      case e => log.error("Could not read Future", e)
-    }
-    result
-  }
+
 
   val deviceConfigForm = Form(
     mapping(
