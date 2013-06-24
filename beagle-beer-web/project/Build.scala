@@ -10,12 +10,14 @@ object ApplicationBuild extends Build {
   val appDependencies = Seq(
     // Add your project dependencies here,
     jdbc,
-    anorm
+    "com.typesafe.play" %% "play-slick" % "0.3.3"
+//      anorm
   )
 
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
-    // Add your own project settings here      
+    // Add your own project settings here
+    net.virtualvoid.sbt.graph.Plugin.graphSettings: _*
   )
 
 }
