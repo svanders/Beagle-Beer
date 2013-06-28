@@ -4,11 +4,11 @@ import play.api.mvc._
 import java.lang.management.ManagementFactory
 import play.api.db.slick.DB
 import play.api.Play.current
-
+import FlashScope.emptyFlash
 
 object Application extends Controller {
 
-  implicit val emptyFlash: Flash = Flash.apply(Map())
+
 
   def index = Action {
     Ok(views.html.index())

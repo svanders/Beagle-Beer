@@ -55,13 +55,9 @@
 
       <h1>@tab</h1>
 
-      @flash.get("success").map { message =>
-        <div class="alert alert-success">
-          @message
-          <a class="close" data-dismiss="alert">&#215;</a>
-        </div>
+      @for(f <- flash.data) {
+        @helper.alert(f._1, f._2)
       }
-
 
       @content
 
@@ -72,8 +68,8 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")"></script>
-    <!--<script src="@routes.Assets.at("javascripts/bootstrap.js")"></script>
-    <script src="../assets/js/bootstrap-alert.js"></script>
+    <script src="@routes.Assets.at("javascripts/global.js")"></script>
+    <!--script src="../assets/js/bootstrap-alert.js"></script>
     <script src="../assets/js/bootstrap-modal.js"></script>
     <script src="../assets/js/bootstrap-dropdown.js"></script>
     <script src="../assets/js/bootstrap-scrollspy.js"></script>

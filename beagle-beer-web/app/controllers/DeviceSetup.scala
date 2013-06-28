@@ -45,7 +45,8 @@ object DeviceSetup extends Controller {
       DB.withSession {
         implicit session =>
           scanForm.bindFromRequest.fold(
-            formWithErrors => BadRequest(views.html.deviceSetup(formWithErrors, probeForm.fill(loadDevices), Map())),
+            formWithErrors =>
+              BadRequest(views.html.deviceSetup(formWithErrors, probeForm.fill(loadDevices), Map())),
             value => {
               scanDir = value
               Redirect(routes.DeviceSetup.view)
@@ -62,7 +63,7 @@ object DeviceSetup extends Controller {
             formWithErrors => BadRequest(views.html.deviceSetup(scanForm.fill(scanDir), formWithErrors, Map())),
             value => {
                value.foreach(DS1820s.insertOrUpdate)
-              Redirect(routes.DeviceSetup.view).flashing("success" -> "Device Configuration Saved")
+              Redirect(routes.DeviceSetup.view).flashing(FlashScope.success -> "Device Configuration Saved")
             }
           )
       }
@@ -103,7 +104,7 @@ object DeviceSetup extends Controller {
 
 
   val scanForm = Form(
-    "sensorsDir" -> text
+    "sensorsDir" -> nonEmptyText
   )
 
 

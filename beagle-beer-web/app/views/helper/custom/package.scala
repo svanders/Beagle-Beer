@@ -1,25 +1,17 @@
 package views.html.helper
 
 /**
- * Created with IntelliJ IDEA.
- * User: simonvandersluis
- * Date: 25/06/13
- * Time: 4:36 PM
- * To change this template use File | Settings | File Templates.
+ * Exposes the custom FieldConstructors used by this application
  */
-//object CustomHelpers {
+package object custom {
 
-//  implicit val myFields = FieldConstructor(spannedOneLineInput.f)
-
-  package object custom {
-    implicit val spannedOnlyField = new FieldConstructor {
-      def apply(elts: FieldElements) = spannedOneLineInput(elts)
-    }
-
-    implicit val tableFieldNoLabel = new FieldConstructor {
-      def apply(elts: FieldElements) = tableInputNoLabel(elts)
-    }
+  implicit def searchStyleInputWithButton(buttonName: String) = new FieldConstructor {
+    def apply(elts: FieldElements) = searchStyleInputWithButtonFieldConstructor(elts, buttonName)
   }
 
-//}
+  implicit val tableFieldNoLabel = new FieldConstructor {
+    def apply(elts: FieldElements) = tableInputNoLabelFieldConstructor(elts)
+  }
+}
+
 

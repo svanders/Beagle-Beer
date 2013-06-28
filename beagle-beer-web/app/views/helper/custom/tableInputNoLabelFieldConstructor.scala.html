@@ -4,7 +4,7 @@
 @import views.html.helper._
 
 @**************************************************
-* Creates a text input with a label, nothing else  *
+* Creates an input inside a table cell            *
 **************************************************@
 
 <td class=" @elements.args.get('_class) @if(elements.hasErrors) {error}" id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
