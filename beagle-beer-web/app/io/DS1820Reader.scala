@@ -1,4 +1,4 @@
-package devices
+package io
 
 import scala.io.Source
 import java.io.File
@@ -28,7 +28,7 @@ class DS1820Reader(deviceLocation: String) {
       throw new RuntimeException("CRC error on DS1820 read")
     }
     val tempChars = temperatureLine.substring(temperatureLine.indexOf("t=") + 2)
-    (deviceId, tempChars.toFloat / 1000)
+    (deviceLocation, tempChars.toFloat / 1000)
   }
 
   def readAsync: Future[(String, Float)] = {
@@ -45,19 +45,7 @@ class DS1820Scanner(location: String) {
   require(location != null)
 
   def readAll: List[(String, Float)] = {
-    readAll(scan)
-  }
-
-  def readAll(devices: List[String]): List[(String, Float)] = {
-    val readCount = devices.size
-    val futureReads = Future.sequence(readAllAsync(devices))
-    Await.result(futureReads, readCount seconds)
-  }
-
-  private def readAllAsync(devices: List[String]): List[Future[(String, Float)]] = {
-    devices.map {
-      path =>   new DS1820Reader(path).readAsync
-    }
+    DS1820BulkReader.readAll(scan)
   }
 
   def scan: List[String] = {
@@ -71,6 +59,25 @@ class DS1820Scanner(location: String) {
     devicePaths.toList
   }
 
+}
+
+object DS1820BulkReader {
+
+  def readAll(devices: List[String]): List[(String, Float)] = {
+    val readCount = devices.size
+    if (readCount == 0) {
+      Nil
+    } else {
+      val futureReads = Future.sequence(readAllAsync(devices))
+      Await.result(futureReads, readCount seconds)
+    }
+  }
+
+  private def readAllAsync(devices: List[String]): List[Future[(String, Float)]] = {
+    devices.map {
+      path =>   new DS1820Reader(path).readAsync
+    }
+  }
 }
 
 object DS1820NameParser {

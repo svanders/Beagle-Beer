@@ -1,0 +1,14 @@
+@(elements: views.html.helper.FieldElements)
+
+@import play.api.i18n._
+@import views.html.helper._
+
+@**************************************************
+* Creates a text input with a label, nothing else  *
+**************************************************@
+
+<td class=" @elements.args.get('_class) @if(elements.hasErrors) {error}" id="@elements.args.get('_id).getOrElse(elements.id + "_field")">
+  @elements.input
+  <span class="help-inline">@elements.errors(elements.lang).mkString(", ")</span>
+  <span class="help-block">@elements.infos(elements.lang).mkString(", ")</span>
+</td>

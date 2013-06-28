@@ -6,7 +6,8 @@
 GET     /                           controllers.Application.index
 GET     /status.html                controllers.Application.status
 GET     /deviceSetup.html           controllers.DeviceSetup.view
-POST    /deviceSetup.html           controllers.DeviceSetup.save
+GET     /deviceScan.html            controllers.DeviceSetup.scan
+POST     /deviceSetup.html          controllers.DeviceSetup.save
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

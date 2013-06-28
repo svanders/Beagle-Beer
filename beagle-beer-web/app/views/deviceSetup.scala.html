@@ -1,40 +1,54 @@
-@(configForm: Form[DeviceConfig], devices: Map[String, Float])(implicit flash: play.api.mvc.Flash)
+@(scanForm: Form[String], probeForm: Form[List[DS1820]], readings: Map[String, Float])(implicit flash: play.api.mvc.Flash)
+
 
 @import helper._
-@import helper.twitterBootstrap._
+@import views.helper.custom.CustomHelpers
+@implicitField = @{ CustomHelpers.wrapedInTdNoLabel }
+
 
 @main("Beagle Beer - Device Setup", "Setup") {
 
-  @flash.get("message").map { message =>
-    <div class="alert-message warning">@message</div>
-  }
 
-  @form(routes.DeviceSetup.save) {
+
+  @form(action = routes.DeviceSetup.scan, args = 'class -> "form-search") {
     <fieldset>
-       @inputText(configForm("sensorsDir"), '_label -> "Sensors Location")
+      @helper.inputText(scanForm("sensorsDir"), '_label -> "Sensors Location")(views.html.helper.custom.spannedOnlyField, Lang.defaultLang)
+      <button type="submit" class="btn" >Scan</button>
     </fieldset>
-    <button type="submit" class="btn" >Save</button>
-
   }
 
-
-  <div>
-    @if(devices.isEmpty) {
-      <p>No devices found</p>
-    } else {
+  @if(probeForm("").indexes.isEmpty) {
+    <p>No devices found</p>
+  } else {
+    @form(routes.DeviceSetup.save) {
       <table class="table table-striped table-bordered table-condensed">
         <thead>
-          <tr><th>Device</th><th>Temperature</th></tr>
+          <tr>
+            <th>Sensor</th>
+            <th>Name</th>
+            <th>Enabled</th>
+            <th>Master</th>
+            <th>Reading</th>
+          </tr>
         </thead>
         <tbody>
-          @for((key, value) <- devices) {
+          @repeat(probeForm("")) { probe =>
             <tr>
-              <td>@key</td>
-              <td>@value</td>
+              <td>
+                @io.DS1820NameParser.extractDeviceId(probe("path").value.get)
+                <input type="hidden" name="@probe("id").name" value="@probe("id").value"/>
+                <input type="hidden" name="@probe("path").name" value="@probe("path").value"/>
+              </td>
+              @helper.inputText(probe("name"), '_label -> "Name")
+              @helper.checkbox(probe("enabled"), '_label -> "Enabled")
+              @helper.checkbox(probe("master"), '_label -> "Master")
+              <td>@readings.get(probe("path").value.get)</td>
             </tr>
           }
         </tbody>
       </table>
+      <button type="submit" class="btn" >Save</button>
     }
-  </div>
+  }
+
 }

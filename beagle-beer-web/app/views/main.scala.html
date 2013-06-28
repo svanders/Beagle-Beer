@@ -1,4 +1,4 @@
-@(title: String, tab: String)(content: Html)
+@(title: String, tab: String)(content: Html)(implicit flash: play.api.mvc.Flash)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -55,6 +55,12 @@
 
       <h1>@tab</h1>
 
+      @flash.get("success").map { message =>
+        <div class="alert alert-success">
+          @message
+          <a class="close" data-dismiss="alert">&#215;</a>
+        </div>
+      }
 
 
       @content

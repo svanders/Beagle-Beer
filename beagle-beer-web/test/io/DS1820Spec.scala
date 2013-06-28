@@ -1,4 +1,4 @@
-package devices
+package io
 
 import org.specs2.mutable._
 
@@ -15,10 +15,10 @@ class DS1820Spec extends Specification {
 
    "The reader" should {
      "be able to read the output from a DS1820 temperature sensor" in {
-       reader.read  must be equalTo(("28-000002a6c659", 20.111f)) }
+       reader.read  must be equalTo(("test/data/28-000002a6c659/w1_slave", 20.111f)) }
        
      "be able to read negative temperatures" in {
-       negativeReader.read must be equalTo(("28-000002a6c660", -22.123f))
+       negativeReader.read must be equalTo(("test/data/28-000002a6c660/w1_slave", -22.123f))
      }  
    }
 
@@ -31,6 +31,10 @@ class DS1820Spec extends Specification {
     "be able to read all devices in a dirctory" in {
       val readings = scanner.readAll
       readings must have size(2)
+    }
+
+    "be able to read no devices" in {
+      DS1820BulkReader.readAll(Nil) must be empty
     }
   }
 
