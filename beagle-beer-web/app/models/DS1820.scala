@@ -13,7 +13,10 @@ import scala.reflect.runtime.{ universe => ru }
  * a label e.g. ambient
  * and a boolean flag indicating if the device is enabled.
  */
-case class DS1820(id: Option[Int], path:String, name: String, enabled: Boolean, master: Boolean) extends Persistent
+case class DS1820(id: Option[Int], path:String, name: String, enabled: Boolean, master: Boolean) extends Persistent {
+
+
+}
 
 object DS1820s extends Table[DS1820]("DS1820") {
 
