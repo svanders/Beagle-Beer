@@ -7,12 +7,14 @@
 
 @main("Beagle Beer - Device Setup", "Setup") {
 
-  @if(scanForm.hasErrors) {
-    @helper.alert(FlashScope.error, "Please correct form errors and try again")
-  }
+  @if(probeForm("").indexes.isEmpty) {
+    @if(scanForm.hasErrors) {
+      @helper.alert(FlashScope.error, "Please correct form errors and try again")
+    }
 
-  @form(action = routes.DeviceSetup.scan, args = 'class -> "form-search") {
-      @helper.inputText(scanForm("sensorsDir"), '_label -> "Sensors Location")(views.html.helper.custom.searchStyleInputWithButton("Scan"), Lang.defaultLang)
+    @form(action = routes.DeviceSetup.scan, args = 'class -> "form-search") {
+        @helper.inputText(scanForm("sensorsDir"), '_label -> "Sensors Location")(views.html.helper.custom.searchStyleInputWithButton("Scan"), Lang.defaultLang)
+    }
   }
 
   @if(probeForm("").indexes.isEmpty) {
