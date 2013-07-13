@@ -10,19 +10,19 @@ systemctl disable gdm.service
 Create nocape-w1 service
 -------------------------
 
-create the file nocape-w1.sh in /opt
+create the file no-cape-w1.sh in /opt
 
-create the nocape-w1.service file in /lib/systemd/system
+create the no-cape-w1.service file in /lib/systemd/system
 
 create the required symbolic link to /etc/systemd/system
 
-ln -s /lib/systemd/system/nocape-w1.service  /etc/systemd/system/nocape-w1.service
+ln -s /lib/systemd/system/no-cape-w1.service  /etc/systemd/system/no-cape-w1.service
 
 Load the no cape device tree using the systemctl
-systemctl start nocape-w1.service
+systemctl start no-cape-w1.service
 
 Make the loading part of startup (ie automated)
-systemctl enable nocape-w1.service
+systemctl enable no-cape-w1.service
 
 
 
@@ -30,7 +30,7 @@ systemctl enable nocape-w1.service
 Add Java
 ---------
 
-Add the libs feed by creating the file /etc/opkg/libs-feed.conf
+Add the libs feed by creating the file /etc/opkg/
 
 With the following content
 
@@ -42,5 +42,8 @@ opkg update
 opkg install openjdk-6-jdk
 opkg install openjdk-6-java
 opkg install openjdk-6-vm-zero
+
+Install java 7 for arm from
+http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
 
 

@@ -9,7 +9,7 @@
  /plugin/;
 
  / {
-        compatible = "ti,beaglebone";
+        compatible = "ti,beaglebone", "ti,beaglebone-black";
         part-number = "BB-BONE-W1";
         version = "00A0";
 

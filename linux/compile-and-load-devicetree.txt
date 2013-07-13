@@ -2,12 +2,12 @@ Step 1 - Compile the device tree binary.
 ------
 
 Copy the no-cape.dts to the beagle board black and compile it to the correct location
-$> dtc -@ -O dtb -I dts -o /lib/firmware/nocape-w1-00A0.dtbo nocape-w1-00A0.dts 
+$> dtc -O dtb -o /lib/firmware/no-cape-w1-0A00.dtbo -b o -@ no-cape-w1.dts
  
 Step 2 - Load the device tree overlay 
 ------
  
-$> echo nocape-w1 > /sys/devices/bone_capemgr.9/slots 
+$> echo nocape-w1 > /sys/devices/bone_capemgr.8/slots 
  
 check dmesg to see if it loaded ok
 
