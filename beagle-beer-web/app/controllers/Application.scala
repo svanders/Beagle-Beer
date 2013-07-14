@@ -4,6 +4,7 @@ import play.api.mvc._
 import java.lang.management.ManagementFactory
 import play.api.db.slick.DB
 import play.api.Play.current
+import controllers.util.FlashScope
 import FlashScope.emptyFlash
 
 object Application extends Controller {

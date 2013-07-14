@@ -7,7 +7,9 @@ GET     /                           controllers.Application.index
 GET     /status.html                controllers.Application.status
 GET     /deviceSetup.html           controllers.DeviceSetup.view
 GET     /deviceScan.html            controllers.DeviceSetup.scan
-POST     /deviceSetup.html          controllers.DeviceSetup.save
+POST    /deviceSetup.html           controllers.DeviceSetup.save
+GET     /element/:element/:command   controllers.Element.switch(element: String, command:Boolean)
+
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

@@ -1,8 +1,12 @@
 @(scanForm: Form[String], probeForm: Form[List[DS1820]], readings: Map[String, Float])(implicit flash: play.api.mvc.Flash)
+@import controllers.util.FlashScope
+@import controllers.util.FlashScope
 
 
 @import helper._
-@implicitField = @{ views.html.helper.custom.tableFieldNoLabel }
+  @implicitField = @{
+    views.html.helper.custom.tableFieldNoLabel
+  }
 
 
 @main("Beagle Beer - Device Setup", "Setup") {
@@ -13,7 +17,7 @@
     }
 
     @form(action = routes.DeviceSetup.scan, args = 'class -> "form-search") {
-        @helper.inputText(scanForm("sensorsDir"), '_label -> "Sensors Location")(views.html.helper.custom.searchStyleInputWithButton("Scan"), Lang.defaultLang)
+      @helper.inputText(scanForm("sensorsDir"), '_label -> "Sensors Location")(views.html.helper.custom.searchStyleInputWithButton("Scan"), Lang.defaultLang)
     }
   }
 
@@ -27,9 +31,9 @@
 
     @if(probeForm.hasGlobalErrors) {
       <ul>
-        @for(error <- probeForm.globalErrors) {
-          <li>@error.message</li>
-        }
+      @for(error <- probeForm.globalErrors) {
+        <li>@error.message</li>
+      }
       </ul>
     }
 
@@ -45,23 +49,65 @@
           </tr>
         </thead>
         <tbody>
-          @repeat(probeForm("")) { probe =>
-            <tr>
-              <td>
-                @io.DS1820NameParser.extractDeviceId(probe("path").value.get)
-                <input type="hidden" name="@probe("id").name" value="@probe("id").value"/>
-                <input type="hidden" name="@probe("path").name" value="@probe("path").value"/>
-              </td>
-              @helper.inputText(probe("name"), '_label -> "Name")
-              @helper.checkbox(probe("enabled"), '_label -> "Enabled", '_error -> probeForm.error(probe.name))
-              @helper.checkbox(probe("master"), '_label -> "Master")
-              <td>@readings.get(probe("path").value.get)</td>
-            </tr>
-          }
+        @repeat(probeForm("")) { probe =>
+          <tr>
+            <td>
+              @io.DS1820NameParser.extractDeviceId(probe("path").value.get)
+            <input type="hidden" name="@probe("id").name" value="@probe("id").value"/>
+            <input type="hidden" name="@probe("path").name" value="@probe("path").value"/>
+            </td>
+            @helper.inputText(probe("name"), '_label -> "Name")
+            @helper.checkbox(probe("enabled"), '_label -> "Enabled", '_error -> probeForm.error(probe.name))
+            @helper.checkbox(probe("master"), '_label -> "Master")
+            <td>@readings.get(probe("path").value.get)</td>
+          </tr>
+        }
         </tbody>
       </table>
       <button type="submit" class="btn" >Save</button>
     }
   }
 
+
+  <h2>Element controls</h2>
+  <div style="width: 20%">
+    <table class="table table-bordered">
+      <tr>
+        <th>Heating element</th>
+        <td><a id="hotOff" href="#">Off</a></td>
+        <td><a id="hotOn" href="#">On</a></td>
+      </tr>
+      <tr>
+        <th>Cooling element</th>
+        <td><a id="coldOff" href="#">Off</a></td>
+        <td><a id="coldOn" href="#">On</a></td>
+      </tr>
+    </table>
+  </div>
+
 }
+
+<script>
+
+  $(document).ready( function() {
+
+  /**
+  * Bind a function to the on/off element links that performs an ajax call to
+  *
+  */
+  $('#hotOff').click(function() {
+  $.ajax('@routes.Element.switch("hot", false)')
+  });
+  $('#hotOn').click(function() {
+  $.ajax('@routes.Element.switch("hot", true)')
+  });
+  $('#coldOff').click(function() {
+  $.ajax('@routes.Element.switch("cold", false)')
+  });
+  $('#coldOn').click(function() {
+  $.ajax('@routes.Element.switch("cold", true)')
+  });
+  });
+
+
+</script>

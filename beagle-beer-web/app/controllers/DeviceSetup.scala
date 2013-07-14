@@ -13,6 +13,7 @@ import play.api.Play.current
 
 import org.slf4j.LoggerFactory
 import play.api.data.validation.{Valid, ValidationError, Invalid, Constraint}
+import controllers.util.FlashScope
 
 ;
 

@@ -1,4 +1,4 @@
-package play.api.data
+package controllers.util
 
 import play.api.data.{Mapping, Forms}
 import play.api.data.format._
