@@ -56,7 +56,7 @@ class DS1820Scanner(location: String) {
       if DS1820NameParser.isDS1820(file.getName)
     } yield file.getAbsolutePath + "/w1_slave"
 
-    devicePaths.toList
+    devicePaths.toList.sorted
   }
 
 }
