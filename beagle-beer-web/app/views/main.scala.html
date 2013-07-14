@@ -1,7 +1,7 @@
 @(title: String, tab: String)(content: Html)(implicit flash: play.api.mvc.Flash)
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
   <head>
     <meta charset="utf-8">
     <title>Beagle Beer</title>
@@ -10,14 +10,14 @@
     <meta name="author" content="">
 
       <!-- Le styles -->
-    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.css")">
-
+    <link rel="stylesheet" media="screen" href="@routes.Assets.at("bootstrap/css/bootstrap.min.css")">
+    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
     <style>
       body {
       padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
       }
     </style>
-    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap-responsive.css")">
+    <!--link rel="stylesheet" media="screen" href="@routes.Assets.at("bootstrap/js/bootstrap-responsive.css")"-->
 
 
       <!-- Fav and touch icons
@@ -69,6 +69,7 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")"></script>
     <script src="@routes.Assets.at("javascripts/global.js")"></script>
+    <script src="@routes.Assets.at("bootstrap/js/bootstrap.min.js")"></script>
     <!--script src="../assets/js/bootstrap-alert.js"></script>
     <script src="../assets/js/bootstrap-modal.js"></script>
     <script src="../assets/js/bootstrap-dropdown.js"></script>
