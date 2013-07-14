@@ -48,8 +48,11 @@ object Application extends Controller {
           ("Total classes loaded:", classes.getTotalLoadedClassCount),
           ("Total classes unloaded:", classes.getUnloadedClassCount),
           ("Pending finalisation:", memory.getObjectPendingFinalizationCount),
-          ("Database URL", session.conn.getMetaData.getURL)
+          ("Database URL", session.conn.getMetaData.getURL),
+          ("Connection class", session.conn.getClass.getName)
         )
+
+
 
         Ok(views.html.status(vmStats))
     }
