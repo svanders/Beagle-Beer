@@ -2,7 +2,35 @@
 
 @main("Beagle Beer", "Home") {
 
-  <p>TODO</p>
+  <h2>Logging controls</h2>
+  <div style="width: 20%">
+    <table class="table table-bordered">
+      <tr>
+        <td><a id="startLogger" href="#">Start Logging</a></td>
+        <td><a id="stopLogger" href="#">Stop Logging</a></td>
+      </tr>
+    </table>
+  </div>
 
-    
+
 }
+
+<script>
+
+  $(document).ready( function() {
+
+  /**
+  * Bind a function to the on/off element links that performs an ajax call to
+  *
+  */
+  $('#startLogger').click(function() {
+  $.ajax('@routes.Logger.start')
+  });
+  $('#stopLogger').click(function() {
+  $.ajax('@routes.Logger.stop')
+  });
+
+  });
+
+
+</script>

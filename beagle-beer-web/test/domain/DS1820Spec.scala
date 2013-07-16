@@ -19,7 +19,7 @@ class DS1820Spec extends Specification {
     DS1820(None, "pathBBB", "d3", true, false)
   )
 
-  "Devices" should {
+  "DS1820s" should {
     "be persistable in the database" in
       new WithApplication(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         DB.withSession {
@@ -28,9 +28,7 @@ class DS1820Spec extends Specification {
             Query(DS1820s).list must have size 3
         }
       }
-  }
 
-  "Devices" should {
     "have their id set when inserted" in
       new WithApplication(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         DB.withSession {
@@ -42,7 +40,7 @@ class DS1820Spec extends Specification {
             found.head.id.get must be greaterThan 0
         }
       }
-  }
+
 
 
   "be searchable by the enabled flag" in
@@ -64,6 +62,6 @@ class DS1820Spec extends Specification {
           found.map(d => d.path) must be equalTo List("pathAAA", "pathBBB", "pathCCC")
       }
     }
-
+  }
 
 }

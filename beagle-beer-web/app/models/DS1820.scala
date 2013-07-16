@@ -18,8 +18,7 @@ case class DS1820(id: Option[Int], path:String, name: String, enabled: Boolean, 
 
 }
 
-object DS1820s extends Table[DS1820]("DS1820") {
-
+object DS1820s extends Table[DS1820]("DS1820") with InsertOrUpdate[DS1820] {
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
   def path = column[String]("path", O.NotNull)
   def name = column[String]("name", O.NotNull)
@@ -30,26 +29,29 @@ object DS1820s extends Table[DS1820]("DS1820") {
 //  def forInsert =  path ~ name ~ enabled ~ master <> ({t => DS1820(None, t._1, t._2, t._3, t._4)},
 //                                                      {d: DS1820 => Some((d.path, d.name, d.enabled, d.master))})
 
+  def table = DS1820s
 
   // Use the implicit threadLocalSession
   //import Database.threadLocalSession  --- doesn't always work, bug???
 
 
 
-  def insertOrUpdate(ds1820: DS1820)(implicit session: Session) = {
-    require(ds1820 != null)
-    if (ds1820.isPersisted) {
-      update(ds1820)
-    } else {
-      this.insert(ds1820)
-    }
-  }
+//  def insertOrUpdate(ds1820: DS1820)(implicit session: Session) = {
+//    require(ds1820 != null)
+//    if (ds1820.isPersisted) {
+//      update(ds1820)
+//    } else {
+//      this.insert(ds1820)
+//    }
+//  }
 
-  def update(ds1820: DS1820)(implicit session: Session) = {
+  override def update(ds1820: DS1820)(implicit session: Session) = {
     require(ds1820 != null)
     val query = for ( d <- DS1820s if d.id === ds1820.id) yield d
     query.update(ds1820)
   }
+
+  override def insert(ds1820: DS1820)(implicit session: Session) = DS1820s.insertInvoker.insert(ds1820)
 
   def filterByEnabled(enabled: Boolean)(implicit session: Session) = {
     val query = for (d <- DS1820s if d.enabled === enabled) yield d

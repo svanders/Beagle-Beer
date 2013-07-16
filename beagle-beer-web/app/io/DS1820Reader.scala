@@ -63,18 +63,24 @@ class DS1820Scanner(location: String) {
 
 object DS1820BulkReader {
 
-  def readAll(devices: List[String]): List[(String, Float)] = {
-    val readCount = devices.size
+  /**
+   * Reads all the DS1820 specified by paths in parallel.  It will suspend the current thread
+   * while waiting for the reads to complete, usually ~ 700 ms.
+   * @param paths
+   * @return
+   */
+  def readAll(paths: List[String]): List[(String, Float)] = {
+    val readCount = paths.size
     if (readCount == 0) {
       Nil
     } else {
-      val futureReads = Future.sequence(readAllAsync(devices))
+      val futureReads = Future.sequence(readAllAsync(paths))
       Await.result(futureReads, readCount seconds)
     }
   }
 
-  private def readAllAsync(devices: List[String]): List[Future[(String, Float)]] = {
-    devices.map {
+  private def readAllAsync(paths: List[String]): List[Future[(String, Float)]] = {
+    paths.map {
       path =>   new DS1820Reader(path).readAsync
     }
   }
