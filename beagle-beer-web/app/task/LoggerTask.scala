@@ -1,12 +1,13 @@
 package task
 
-import models.{Sample, Log, DS1820}
+import play.api.db.slick.DB
+import models.{Logs, Sample, Log, DS1820}
 import java.util.Date
 import org.slf4j.LoggerFactory
 import io.DS1820BulkReader
+import play.api.Play.current
 
-import scala.concurrent.ExecutionContext
-import ExecutionContext.Implicits.global
+
 import scala.annotation.tailrec
 
 /**
@@ -26,9 +27,13 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
 
     on = true
 
-    val logRecord = new Log(None, new Date, None)
+    val logRecord =  DB.withTransaction {
+      implicit session =>
+        Logs.insert(Log(None, new Date, None))
+    }
+
     log.debug("Started temperature log " + logRecord + " using " + devices.size + " sensors")
-    // TODO save logRecord
+
     while (on) {
       val now = new Date
       val reads = DS1820BulkReader.readAll(devices.map(d => d.path))
@@ -46,12 +51,11 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
       sleepWithFastWake(logIntervalMillis, 200)
     }
 
-    log.debug("done")
-    val endedLogRecord = new Log(logRecord.id, logRecord.start, Some(new Date))
+    val endedLogRecord = DB.withTransaction {
+      implicit session =>
+        Logs.update(logRecord.copy(end = Some(new Date)))
+    }
     log.debug("Ended temperature log " + endedLogRecord)
-    // TODO update logRecord in DB
-
-
   }
 
   def stop = {

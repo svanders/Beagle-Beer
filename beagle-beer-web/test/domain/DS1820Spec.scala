@@ -20,28 +20,15 @@ class DS1820Spec extends Specification {
   )
 
   "DS1820s" should {
-    "be persistable in the database" in
-      new WithApplication(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
-        DB.withSession {
-          implicit session =>
-            DS1820s.insertAll(testDS1820s: _*)
-            Query(DS1820s).list must have size 3
-        }
-      }
-
     "have their id set when inserted" in
       new WithApplication(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         DB.withSession {
           implicit session =>
             val ds1820 = DS1820(None, "path1", "d1", true, false)
-            DS1820s.insert(ds1820)
-            val found = Query(DS1820s).list
-            found must have size 1
-            found.head.id.get must be greaterThan 0
+            val found = DS1820s.insert(ds1820)
+            found.id.get must be greaterThan 0
         }
       }
-
-
 
   "be searchable by the enabled flag" in
     new WithApplication(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
@@ -52,7 +39,7 @@ class DS1820Spec extends Specification {
       }
     }
 
-  "be ordered correctly when finding all" in
+  "be ordered by path when finding all" in
     new WithApplication(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
       DB.withSession {
         implicit session =>

@@ -34,24 +34,19 @@ object DS1820s extends Table[DS1820]("DS1820") with InsertOrUpdate[DS1820] {
   // Use the implicit threadLocalSession
   //import Database.threadLocalSession  --- doesn't always work, bug???
 
-
-
-//  def insertOrUpdate(ds1820: DS1820)(implicit session: Session) = {
-//    require(ds1820 != null)
-//    if (ds1820.isPersisted) {
-//      update(ds1820)
-//    } else {
-//      this.insert(ds1820)
-//    }
-//  }
-
   override def update(ds1820: DS1820)(implicit session: Session) = {
     require(ds1820 != null)
     val query = for ( d <- DS1820s if d.id === ds1820.id) yield d
     query.update(ds1820)
+
+    // simply return the DS1820 the update was for
+    ds1820
   }
 
-  override def insert(ds1820: DS1820)(implicit session: Session) = DS1820s.insertInvoker.insert(ds1820)
+  override def insert(ds1820: DS1820)(implicit session: Session) = {
+    val id = DS1820s.insertInvoker returning DS1820s.id insert(ds1820)
+    ds1820.copy(id = Some(id))
+  }
 
   def filterByEnabled(enabled: Boolean)(implicit session: Session) = {
     val query = for (d <- DS1820s if d.enabled === enabled) yield d

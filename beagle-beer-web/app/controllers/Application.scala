@@ -6,13 +6,16 @@ import play.api.db.slick.DB
 import play.api.Play.current
 import controllers.util.FlashScope
 import FlashScope.emptyFlash
+import models.Logs
 
 object Application extends Controller {
 
 
-
   def index = Action {
-    Ok(views.html.index())
+    DB.withSession {
+      implicit session =>
+        Ok(views.html.index(Logs.all))
+    }
   }
 
   def status = Action {
