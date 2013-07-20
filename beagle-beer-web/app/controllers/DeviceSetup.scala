@@ -2,7 +2,7 @@ package controllers
 
 import play.api.db.slick.DB
 import play.api.mvc.{Action, Controller}
-import models.{DS1820s, DS1820}
+import models.{DS1820sDb, DS1820}
 import play.api.data._
 import play.api.data.Forms._
 import io.{DS1820BulkReader, DS1820Scanner, DS1820NameParser}
@@ -65,7 +65,7 @@ object DeviceSetup extends Controller {
           probeForm.bindFromRequest.fold(
             formWithErrors => BadRequest(views.html.deviceSetup(scanForm.fill(scanDir), formWithErrors, Map())),
             value => {
-               value.foreach(DS1820s.insertOrUpdate)
+               value.foreach(DS1820sDb.insertOrUpdate)
               Redirect(routes.DeviceSetup.view).flashing(FlashScope.success -> "Device Configuration Saved")
             }
           )
@@ -89,7 +89,7 @@ object DeviceSetup extends Controller {
 
     DB.withSession {
       implicit session =>
-        val devices = DS1820s.all
+        val devices = DS1820sDb.all
         if (devices.isEmpty) {
           scan
         } else {

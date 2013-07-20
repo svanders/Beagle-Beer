@@ -1,8 +1,9 @@
 package task
 
-import models.{Sample, Log}
+import models.{DS1820, Sample, Log}
 import java.util.Date
 import org.slf4j.LoggerFactory
+import play.api.libs.json.Json
 
 /**
  * A trait for anything interested in new samples to implement.  If the Listener is registered
@@ -11,10 +12,10 @@ import org.slf4j.LoggerFactory
 trait LoggerTaskListener {
 
   /**
-   * Implementations free to do what they want with the Sample.
-   * @param sample
+   * Implementations free to do what they want with the Samples.
+   * @param samples
    */
-  def receiveRead(sample: Sample)
+  def receiveRead(samples: List[Sample]): Unit
 }
 
 /**
@@ -24,13 +25,27 @@ object DebugLogLoggerTaskListener extends LoggerTaskListener {
 
   val log = LoggerFactory.getLogger("task.DebugLogLoggerTaskListener")
 
-  def receiveRead(sample: Sample) = log.debug("Recorded sample "  + sample)
+  override def receiveRead(samples: List[Sample]) =
+    for (sample <- samples) log.debug("Recorded sample "  + sample)
 }
 
+/**
+ * A listener that provides the latest samples.
+ */
+object LatestValueListener extends LoggerTaskListener {
+
+  var latest: List[Sample] = List()
+
+  override def receiveRead(samples: List[Sample]) {
+     latest = samples
+  }
+
+  def clear: Unit = {
+    latest = List()
+  }
 
 
-
-
+}
 
 
 

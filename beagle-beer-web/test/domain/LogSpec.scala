@@ -26,7 +26,7 @@ class LogSpec extends Specification {
       new WithApplication(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         DB.withSession {
           implicit session =>
-            val found = Logs.insert(Log(None, new Date, None))
+            val found = LogsDb.insert(Log(None, new Date, None))
             found.id.get must be greaterThan 0
         }
       }
@@ -35,8 +35,8 @@ class LogSpec extends Specification {
       new WithApplication(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         DB.withSession {
           implicit session =>
-            Logs.insertAll(testLogs: _*)
-            val found = Logs.all
+            LogsDb.insertAll(testLogs: _*)
+            val found = LogsDb.all
             found must have size 3
             found.map(l => l.start) must be equalTo List(
               "2013-07-16 10:00:00".toDate,

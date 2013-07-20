@@ -1,7 +1,7 @@
 package task
 
 import play.api.db.slick.DB
-import models.{Logs, Sample, Log, DS1820}
+import models.{LogsDb, Sample, Log, DS1820}
 import java.util.Date
 import org.slf4j.LoggerFactory
 import io.DS1820BulkReader
@@ -9,6 +9,7 @@ import play.api.Play.current
 
 
 import scala.annotation.tailrec
+import play.api.libs.json.Json
 
 /**
  * When started, records a new Log in the database, records Measurements every 10 seconds,
@@ -29,7 +30,7 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
 
     val logRecord =  DB.withTransaction {
       implicit session =>
-        Logs.insert(Log(None, new Date, None))
+        LogsDb.insert(Log(None, new Date, None))
     }
 
     log.debug("Started temperature log " + logRecord + " using " + devices.size + " sensors")
@@ -45,15 +46,14 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
       // send each sample through each LoggerTaskListener
       for {
         listener <- listeners
-        sample <- samples
-      } listener.receiveRead(sample)
+      } listener.receiveRead(samples)
 
       sleepWithFastWake(logIntervalMillis, 200)
     }
 
     val endedLogRecord = DB.withTransaction {
       implicit session =>
-        Logs.update(logRecord.copy(end = Some(new Date)))
+        LogsDb.update(logRecord.copy(end = Some(new Date)))
     }
     log.debug("Ended temperature log " + endedLogRecord)
   }
@@ -67,7 +67,7 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
 
   private def createSample(read: (String, Float), logRecord: Log, now: Date): Sample = {
     val device = devices.find(d => d.path == read._1).get // should always fins the correct device
-    val sample = new Sample(logRecord, device, now, read._2)
+    val sample = new Sample(None, logRecord.id.get, device.id.get, now, read._2)
     return sample
   }
 
@@ -75,7 +75,6 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
     require(sleepTimeMillis >= pollForWakeTimeMillis)
 
     val sleepStart = new Date().getTime
-
     sleep
 
     @tailrec
@@ -84,8 +83,6 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
       val again = new Date().getTime - sleepStart < sleepTimeMillis && on
       if (again) sleep
     }
-
   }
-
-
 }
+

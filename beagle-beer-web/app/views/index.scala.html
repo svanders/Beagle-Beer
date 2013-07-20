@@ -1,51 +1,33 @@
-@(logs: List[Log])(implicit flash: play.api.mvc.Flash)
+@(ds1820s: List[DS1820])(implicit flash: play.api.mvc.Flash)
 
-  @main("Beagle Beer", "Home") {
+@main("Beagle Beer", "Home") {
 
+  <div style="width: 300px">
+    <table>
+      <tr>
+        <td><span id="startLogger" class="btn">Start Logging</span></td>
+        <td><span id="stopLogger" class="btn">Stop Logging</span></td>
+      </tr>
+    </table>
+  </div>
 
-    @if(logs.isEmpty) {
-      <p>No logs found</p>
-    } else {
-      <table class="table table-striped table-bordered table-condensed">
-        <thead>
-          <tr><th>Start</th> <th>End</th></tr>
-        </thead>
-        <tbody>
-        @for(log: Log <- logs) {
-          <tr>
-            <td>@log.start.getTime</td>
-            <td>@log.end.getOrElse("-")</td>
-          </tr>
-        }
-        </tbody>
-      </table>
-    }
-
-    <h2>Logging controls</h2>
-    <div style="width: 20%">
-      <table class="table table-bordered">
-        <tr>
-          <td><a id="startLogger" href="#">Start Logging</a></td>
-          <td><a id="stopLogger" href="#">Stop Logging</a></td>
-        </tr>
-      </table>
-    </div>
-
-
+  <div id="gauges">
+  @for(ds1820 <- ds1820s) {
+    <span id="gauge@ds1820.id" title="@ds1820.name"></span>
   }
+  </div>
 
-  <script>
+}
 
-      $(document).ready( function() {
-    /**
-    * Bind a function to the on/off element links that performs an ajax call to
-    *
-    */
-    $('#startLogger').click(function() {
-    $.ajax('@routes.Logger.start')
-    });
-    $('#stopLogger').click(function() {
-    $.ajax('@routes.Logger.stop')
-    });
-    });
+  <script type="text/javascript">
+
+    var startLoggerUrl = "@routes.Logger.start"
+    var stopLoggerUrl = "@routes.Logger.stop"
+    var latestValueUrl = "@routes.Logger.latest"
+    var isRunningUrl = "@routes.Logger.isRunning"
   </script>
+
+  <script src="@routes.Assets.at("javascripts/index.js")"></script>
+
+
+

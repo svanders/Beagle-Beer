@@ -43,6 +43,7 @@
           <div class="nav-collapse collapse">
             <ul class="nav">
               <li @if(tab == "Home") { class="active" } ><a href="@routes.Application.index()">Home</a></li>
+              <li @if(tab == "Log History") { class="active" } ><a href="@routes.Application.logHistory">Log History</a></li>
               <li @if(tab == "Status") { class="active" }><a href="@routes.Application.status()">Status</a></li>
               <li @if(tab == "Setup") { class="active" }><a href="@routes.DeviceSetup.view()">Device Setup</a></li>
             </ul>
@@ -70,6 +71,8 @@
     <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")"></script>
     <script src="@routes.Assets.at("javascripts/global.js")"></script>
     <script src="@routes.Assets.at("bootstrap/js/bootstrap.min.js")"></script>
+    <script src="@routes.Assets.at("javascripts/d3.v3.min.js")"></script>
+    <script src="@routes.Assets.at("javascripts/gauge.js")"></script>
     <!--script src="../assets/js/bootstrap-alert.js"></script>
     <script src="../assets/js/bootstrap-modal.js"></script>
     <script src="../assets/js/bootstrap-dropdown.js"></script>

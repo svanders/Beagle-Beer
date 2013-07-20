@@ -25,7 +25,7 @@ class DS1820Spec extends Specification {
         DB.withSession {
           implicit session =>
             val ds1820 = DS1820(None, "path1", "d1", true, false)
-            val found = DS1820s.insert(ds1820)
+            val found = DS1820sDb.insert(ds1820)
             found.id.get must be greaterThan 0
         }
       }
@@ -34,8 +34,8 @@ class DS1820Spec extends Specification {
     new WithApplication(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
       DB.withSession {
         implicit session =>
-          DS1820s.insertAll(testDS1820s: _*)
-          DS1820s.filterByEnabled(true) must haveSize(2)
+          DS1820sDb.insertAll(testDS1820s: _*)
+          DS1820sDb.filterByEnabled(true) must haveSize(2)
       }
     }
 
@@ -43,8 +43,8 @@ class DS1820Spec extends Specification {
     new WithApplication(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
       DB.withSession {
         implicit session =>
-          DS1820s.insertAll(testDS1820s: _*)
-          val found = DS1820s.all
+          DS1820sDb.insertAll(testDS1820s: _*)
+          val found = DS1820sDb.all
           found must have size 3
           found.map(d => d.path) must be equalTo List("pathAAA", "pathBBB", "pathCCC")
       }

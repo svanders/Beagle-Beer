@@ -4,6 +4,7 @@
 
 # Home page
 GET         /                                 controllers.Application.index
+GET         /logHistory.html                  controllers.Application.logHistory
 GET         /status.html                      controllers.Application.status
 GET         /deviceSetup.html                 controllers.DeviceSetup.view
 GET         /deviceScan.html                  controllers.DeviceSetup.scan
@@ -12,6 +13,7 @@ GET         /element/:element/:command        controllers.Element.switch(element
 GET         /logger/start                     controllers.Logger.start
 GET         /logger/stop                      controllers.Logger.stop
 GET         /logger/isRunning                 controllers.Logger.isRunning
+GET         /logger/latest                    controllers.Logger.latest
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                     controllers.Assets.at(path="/public", file)
