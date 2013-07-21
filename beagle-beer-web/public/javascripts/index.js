@@ -32,7 +32,7 @@ $(document).ready(function () {
    * Create the temperature gauges and start polling
    */
   createGauges();
-  INDEX_PAGE.runningPollId = setInterval(pollForLoggerRunning, 500);
+  INDEX_PAGE.runningPollId = setInterval(pollForLoggerRunning, 1000);
 
 });
 
