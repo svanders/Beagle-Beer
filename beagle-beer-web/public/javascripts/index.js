@@ -17,12 +17,16 @@ $(document).ready(function () {
 
   EventBus.subscribe("loggerRunning", function () {
     if (INDEX_PAGE.loggingPollId < 0) {
+      $("#startLogger").hide()
+      $("#stopLogger").show()
       pollForLatestValue() // immediate poll
       INDEX_PAGE.loggingPollId = setInterval(pollForLatestValue, 5000)
     }
   });
 
   EventBus.subscribe("loggerStopped", function () {
+    $("#stopLogger").hide()
+    $("#startLogger").show()
     clearInterval(INDEX_PAGE.loggingPollId)
     INDEX_PAGE.loggingPollId = -1;
     resetGauges();
@@ -99,6 +103,8 @@ function createGauges() {
     createGauge($(this).attr("id"), $(this).attr("title"), 0, 30);
   });
 }
+
+
 
 function updateGauges(samples) {
   if (samples.length === 0) {

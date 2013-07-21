@@ -17,7 +17,7 @@ import play.api.libs.json.Json
  * To change this template use File | Settings | File Templates.
  */
 object Logger extends Controller {
-	
+
   def start = Action {
     if (LoggerTaskManager isRunning) Ok("Already Running")
     else {
@@ -38,10 +38,10 @@ object Logger extends Controller {
 
   def latest = Action {
     import models.SamplesJson.sampleWrites
-    val latest: List[Sample] = if (LoggerTaskManager.isRunning) LatestValueListener.latest  // simply get the latest value from loggerTask
+    val latest: List[Sample] = if (LoggerTaskManager.isRunning) LatestValueListener.latest // simply get the latest value from loggerTask
     else {
-       // no values to return 
-       List()
+      // no values to return
+      List()
     }
     //log.debug("Latest reading=" + Json.toJson(latest))
     Ok(Json.toJson(latest))
@@ -58,59 +58,66 @@ object LoggerTaskManager {
   val log = LoggerFactory.getLogger("LoggerTasks")
 
   private var task: Option[LoggerTask] = None
-  
-  
+
+
   def isRunning = {
-      loggerTask match {
-        case None => false
-        case Some(task) => task.isRunning
-      }
+    loggerTask match {
+      case None => false
+      case Some(task) => task.isRunning
     }
-    
-    def start: Boolean = {
-      loggerTask match {
-        case None => false
-        case Some(task) => {
-          if (!task.isRunning) {
-            new Thread(task).start
-          }
-        true  
+  }
+
+  def start: Boolean = {
+    loggerTask match {
+      case None => false
+      case Some(task) => {
+        if (!task.isRunning) {
+          new Thread(task).start
+        }
+        true
       }
     }
   }
-  
+
   def stop = {
     loggerTask match {
       case Some(task) => {
         if (task.isRunning) {
           task.stop
-        }  
+        }
       }
-    }  
+      case _ => ;
+    }
   }
-  
-  
+
+  def destry = {
+    if (isRunning) {
+      stop
+    }
+    task = None
+  }
+
+
   private def loggerTask: Option[LoggerTask] = {
-  	task match {
-       case None => task = createTask // try and create one
-       case _ => ;
-     }
+    task match {
+      case None => task = createTask // try and create one
+      case _ => ;
+    }
     task
   }
 
-   private def createTask: Option[LoggerTask] = {
-      DB.withSession {
-        implicit session =>
-          val devices = DS1820sDb.all
-          if (devices isEmpty) {
-            log.warn("No DS1820s are configured, unable to create Logger Task")
-            None
-          } else {
-            Some(new LoggerTask(10000, devices, List(DebugLogLoggerTaskListener, LatestValueListener)))
+  private def createTask: Option[LoggerTask] = {
+    DB.withSession {
+      implicit session =>
+        val devices = DS1820sDb.all
+        if (devices isEmpty) {
+          log.warn("No DS1820s are configured, unable to create Logger Task")
+          None
+        } else {
+          Some(new LoggerTask(10000, devices, List(DebugLogLoggerTaskListener, LatestValueListener)))
         }
-      }
     }
-    
-    
+  }
+
 
 }

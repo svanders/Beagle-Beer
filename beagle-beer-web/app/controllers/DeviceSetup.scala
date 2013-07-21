@@ -65,7 +65,8 @@ object DeviceSetup extends Controller {
           probeForm.bindFromRequest.fold(
             formWithErrors => BadRequest(views.html.deviceSetup(scanForm.fill(scanDir), formWithErrors, Map())),
             value => {
-               value.foreach(DS1820sDb.insertOrUpdate)
+              LoggerTaskManager.destry
+              value.foreach(DS1820sDb.insertOrUpdate)
               Redirect(routes.DeviceSetup.view).flashing(FlashScope.success -> "Device Configuration Saved")
             }
           )
@@ -119,12 +120,12 @@ object DeviceSetup extends Controller {
         "name" -> nonEmptyText(minLength = 1, maxLength = 50).verifying(FormExtension.nonBlank),
         "enabled" -> boolean,
         "master" -> boolean
-      ) (DS1820.apply)(DS1820.unapply)
+      )(DS1820.apply)(DS1820.unapply)
         verifying("Cannot be disabled when selected as master", {
         f => !(!f.enabled && f.master)
       })
     )
-  verifying("One (only) probe must be selected as the master", {
+      verifying("One (only) probe must be selected as the master", {
       f => f.filter(d => d.master).size == 1
     })
   )
