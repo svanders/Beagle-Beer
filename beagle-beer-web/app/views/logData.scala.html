@@ -1,0 +1,29 @@
+@(ds1820s: List[DS1820], data: List[List[Sample]])(implicit flash: play.api.mvc.Flash)
+
+@main("Beagle Beer", "Log History") {
+
+  @if(data.isEmpty) {
+    <p>No logs found</p>
+  } else {
+    <table class="table table-striped table-bordered table-condensed">
+      <thead>
+        <tr>
+          <th>Date</th>
+          @for(ds1820: DS1820 <- ds1820s) {
+            <th>@ds1820.name</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+      @for(row: List[Sample] <- data) {
+        <tr>
+          <td>@row.head.date</td>
+          @for(sample: Sample <- row) {
+            <td>@sample.value</td>
+          }
+        </tr>
+      }
+      </tbody>
+    </table>
+  }
+}

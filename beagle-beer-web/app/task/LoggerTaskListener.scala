@@ -1,9 +1,12 @@
 package task
 
-import models.{DS1820, Sample, Log}
+import models._
 import java.util.Date
 import org.slf4j.LoggerFactory
 import play.api.libs.json.Json
+import play.api.db.slick.DB
+import models.Log
+import models.Sample
 
 /**
  * A trait for anything interested in new samples to implement.  If the Listener is registered
@@ -43,9 +46,18 @@ object LatestValueListener extends LoggerTaskListener {
   def clear: Unit = {
     latest = List()
   }
-
-
 }
 
-
+/**
+ * Saves the Samples to the DB
+ */
+object SamplePersistingListener extends LoggerTaskListener {
+  import play.api.Play.current
+  override def receiveRead(samples: List[Sample]) {
+    DB.withTransaction {
+      implicit session =>
+        samples.foreach(s => SamplesDb.insert(s))
+    }
+  }
+}
 

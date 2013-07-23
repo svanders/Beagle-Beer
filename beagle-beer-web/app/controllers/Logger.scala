@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import play.api.db.slick.DB
 import models.{Sample, DS1820sDb}
 
-import task.{LatestValueListener, DebugLogLoggerTaskListener, LoggerTask}
+import task.{LoggerTaskManager, LatestValueListener, DebugLogLoggerTaskListener, LoggerTask}
 import play.api.Play.current
 import play.api.libs.json.Json
 
@@ -53,71 +53,3 @@ object Logger extends Controller {
   }
 }
 
-object LoggerTaskManager {
-
-  val log = LoggerFactory.getLogger("LoggerTasks")
-
-  private var task: Option[LoggerTask] = None
-
-
-  def isRunning = {
-    loggerTask match {
-      case None => false
-      case Some(task) => task.isRunning
-    }
-  }
-
-  def start: Boolean = {
-    loggerTask match {
-      case None => false
-      case Some(task) => {
-        if (!task.isRunning) {
-          new Thread(task).start
-        }
-        true
-      }
-    }
-  }
-
-  def stop = {
-    loggerTask match {
-      case Some(task) => {
-        if (task.isRunning) {
-          task.stop
-        }
-      }
-      case _ => ;
-    }
-  }
-
-  def destry = {
-    if (isRunning) {
-      stop
-    }
-    task = None
-  }
-
-
-  private def loggerTask: Option[LoggerTask] = {
-    task match {
-      case None => task = createTask // try and create one
-      case _ => ;
-    }
-    task
-  }
-
-  private def createTask: Option[LoggerTask] = {
-    DB.withSession {
-      implicit session =>
-        val devices = DS1820sDb.all
-        if (devices isEmpty) {
-          log.warn("No DS1820s are configured, unable to create Logger Task")
-          None
-        } else {
-          Some(new LoggerTask(10000, devices, List(DebugLogLoggerTaskListener, LatestValueListener)))
-        }
-    }
-  }
-
-
-}

@@ -1,7 +1,7 @@
 package task
 
 import play.api.db.slick.DB
-import models.{LogsDb, Sample, Log, DS1820}
+import models._
 import java.util.Date
 import org.slf4j.LoggerFactory
 import io.DS1820BulkReader
@@ -10,6 +10,10 @@ import play.api.Play.current
 
 import scala.annotation.tailrec
 import play.api.libs.json.Json
+import models.Sample
+import scala.Some
+import models.Log
+import models.DS1820
 
 /**
  * When started, records a new Log in the database, records Measurements every 10 seconds,
@@ -20,7 +24,7 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
   require(listeners != null)
   require(logIntervalMillis >= 1000)
 
-  val log = LoggerFactory.getLogger(this.getClass)
+  val dLog = LoggerFactory.getLogger(this.getClass)
 
   private var on = false
 
@@ -33,12 +37,12 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
         LogsDb.insert(Log(None, new Date, None))
     }
 
-    log.debug("Started temperature log " + logRecord + " using " + devices.size + " sensors")
+    dLog.debug("Started temperature log " + logRecord + " using " + devices.size + " sensors")
 
     while (on) {
       val now = new Date
       val reads = DS1820BulkReader.readAll(devices.map(d => d.path))
-      log.debug("read " + reads.size + " devices")
+      dLog.debug("read " + reads.size + " devices")
 
       // convert the reads into samples
       val samples = for {read <- reads} yield createSample(read, logRecord, now)
@@ -55,11 +59,11 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
       implicit session =>
         LogsDb.update(logRecord.copy(end = Some(new Date)))
     }
-    log.debug("Ended temperature log " + endedLogRecord)
+    dLog.debug("Ended temperature log " + endedLogRecord)
   }
 
   def stop = {
-    log.debug("stopping")
+    dLog.debug("stopping")
     on = false
   }
 
@@ -84,5 +88,73 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
       if (again) sleep
     }
   }
+}
+
+object LoggerTaskManager {
+
+  val dLog = LoggerFactory.getLogger("LoggerTasks")
+
+  private var task: Option[LoggerTask] = None
+
+
+  def isRunning = {
+    loggerTask match {
+      case None => false
+      case Some(task) => task.isRunning
+    }
+  }
+
+  def start: Boolean = {
+    loggerTask match {
+      case None => false
+      case Some(task) => {
+        if (!task.isRunning) {
+          new Thread(task).start
+        }
+        true
+      }
+    }
+  }
+
+  def stop = {
+    loggerTask match {
+      case Some(task) => {
+        if (task.isRunning) {
+          task.stop
+        }
+      }
+      case _ => ;
+    }
+  }
+
+  def destroy = {
+    if (isRunning) {
+      stop
+    }
+    task = None
+  }
+
+
+  private def loggerTask: Option[LoggerTask] = {
+    task match {
+      case None => task = createTask // try and create one
+      case _ => ;
+    }
+    task
+  }
+
+  private def createTask: Option[LoggerTask] = {
+    DB.withSession {
+      implicit session =>
+        val devices = DS1820sDb.all
+        if (devices isEmpty) {
+          dLog.warn("No DS1820s are configured, unable to create Logger Task")
+          None
+        } else {
+          Some(new LoggerTask(10000, devices, List(DebugLogLoggerTaskListener, LatestValueListener, SamplePersistingListener)))
+        }
+    }
+  }
+
 }
 

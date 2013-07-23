@@ -14,6 +14,7 @@ import play.api.Play.current
 import org.slf4j.LoggerFactory
 import play.api.data.validation.{Valid, ValidationError, Invalid, Constraint}
 import controllers.util.{FlashScope, FormExtension}
+import task.LoggerTaskManager
 
 
 /**
@@ -65,7 +66,7 @@ object DeviceSetup extends Controller {
           probeForm.bindFromRequest.fold(
             formWithErrors => BadRequest(views.html.deviceSetup(scanForm.fill(scanDir), formWithErrors, Map())),
             value => {
-              LoggerTaskManager.destry
+              LoggerTaskManager.destroy
               value.foreach(DS1820sDb.insertOrUpdate)
               Redirect(routes.DeviceSetup.view).flashing(FlashScope.success -> "Device Configuration Saved")
             }

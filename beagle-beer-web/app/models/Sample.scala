@@ -44,14 +44,20 @@ object SamplesDb extends Table[Sample]("Sample") {
     sample.copy(id = Some(id))
   }
 
-  def find(log: Log)(implicit session: Session): Map[DS1820, List[Sample]] = {
-    val query = for {
-      s <- SamplesDb if s.logId === log.id.getOrElse(-1)
+  def find(logId: Int)(implicit session: Session): (List[DS1820], List[List[Sample]]) = {
+    val query = (for {
+      s <- SamplesDb if s.logId === logId
       d <- DS1820sDb if s.ds1820Id === d.id
-    } yield (d, s)
+    } yield (d, s)).sortBy(_._2.date).sortBy(_._1.name)
 
-    // TODO - make this understandable
-    query.list.groupBy(p => p._1).mapValues(l => l.map(ds => ds._2).sorted)
+
+    val ds1820sAndSamples: (List[DS1820], List[Sample]) = query.list.unzip
+    val ds1820s: List[DS1820] = ds1820sAndSamples._1.toSet.toList
+    val sampleLists = ds1820sAndSamples._2.groupBy(s => s.date)
+
+    (ds1820s, sampleLists.values.toList)
+//    // TODO - make this understandable
+//    query.list.groupBy(p => p._1).mapValues(l => l.map(ds => ds._2).sorted)
   }
 }
 

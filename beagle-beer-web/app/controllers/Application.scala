@@ -6,7 +6,7 @@ import play.api.db.slick.DB
 import play.api.Play.current
 import controllers.util.FlashScope
 import FlashScope.emptyFlash
-import models.{DS1820sDb, LogsDb}
+import models.{SamplesDb, DS1820sDb, LogsDb}
 
 object Application extends Controller {
 
@@ -22,6 +22,14 @@ object Application extends Controller {
     DB.withSession {
       implicit session =>
         Ok(views.html.logHistory(LogsDb.all))
+    }
+  }
+
+  def logData(logId: Int) = Action {
+    DB.withSession {
+      implicit session =>
+      val result = SamplesDb.find(logId)
+      Ok(views.html.logData(result._1, result._2))
     }
   }
 
