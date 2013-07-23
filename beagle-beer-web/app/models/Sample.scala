@@ -48,16 +48,13 @@ object SamplesDb extends Table[Sample]("Sample") {
     val query = (for {
       s <- SamplesDb if s.logId === logId
       d <- DS1820sDb if s.ds1820Id === d.id
-    } yield (d, s)).sortBy(_._2.date).sortBy(_._1.name)
-
+    } yield (d, s)).sortBy(_._1.name).sortBy(_._2.date)    // weird, the order by are applied right to left
 
     val ds1820sAndSamples: (List[DS1820], List[Sample]) = query.list.unzip
     val ds1820s: List[DS1820] = ds1820sAndSamples._1.toSet.toList
-    val sampleLists = ds1820sAndSamples._2.groupBy(s => s.date)
+    val sampleLists = ds1820sAndSamples._2.grouped(ds1820s.size)
 
-    (ds1820s, sampleLists.values.toList)
-//    // TODO - make this understandable
-//    query.list.groupBy(p => p._1).mapValues(l => l.map(ds => ds._2).sorted)
+    (ds1820s, sampleLists.toList)
   }
 }
 
