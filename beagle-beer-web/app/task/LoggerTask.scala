@@ -32,6 +32,7 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
 
     on = true
 
+    // TODO - create the Log somewhere else
     val logRecord =  DB.withTransaction {
       implicit session =>
         LogsDb.insert(Log(None, new Date, None))
@@ -55,6 +56,7 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
       sleepWithFastWake(logIntervalMillis, 200)
     }
 
+    // TODO - end the Log somewhere else
     val endedLogRecord = DB.withTransaction {
       implicit session =>
         LogsDb.update(logRecord.copy(end = Some(new Date)))
@@ -70,11 +72,16 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
   def isRunning = on
 
   private def createSample(read: (String, Float), logRecord: Log, now: Date): Sample = {
-    val device = devices.find(d => d.path == read._1).get // should always fins the correct device
+    val device = devices.find(d => d.path == read._1).get // should always find the correct device
     val sample = new Sample(None, logRecord.id.get, device.id.get, now, read._2)
     return sample
   }
 
+   /**
+    * Sleeps the current thread for a specified time, but checks for the on flag == false
+    * at the specified poll time out.  Wakes the thread after the specified time or
+    * when on == false, whichever comes first. 
+    */
   def sleepWithFastWake(sleepTimeMillis: Int, pollForWakeTimeMillis: Int): Unit = {
     require(sleepTimeMillis >= pollForWakeTimeMillis)
 
@@ -90,6 +97,9 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
   }
 }
 
+/**
+ * A helper class to mange LoggerTask threads. 
+ */
 object LoggerTaskManager {
 
   val dLog = LoggerFactory.getLogger("LoggerTasks")
@@ -148,7 +158,7 @@ object LoggerTaskManager {
       implicit session =>
         val devices = DS1820sDb.all
         if (devices isEmpty) {
-          dLog.warn("No DS1820s are configured, unable to create Logger Task")
+          dLog.error("No DS1820s are configured, unable to create Logger Task")
           None
         } else {
           Some(new LoggerTask(10000, devices, List(DebugLogLoggerTaskListener, LatestValueListener, SamplePersistingListener)))

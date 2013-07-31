@@ -6,7 +6,7 @@ import java.sql.Timestamp
 
 
 /**
- * Custom Slick type mappings (hopefulyl not too many of these ;) )
+ * Custom Slick type mappings (hopefully not too many of these ;) )
  */
 object CustomSlickTypes {
 

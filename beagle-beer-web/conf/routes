@@ -2,6 +2,8 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
+# TODO - make ajax paths more obvious
+
 # Home page
 GET         /                                 controllers.Application.index
 GET         /logHistory.html                  controllers.Application.logHistory

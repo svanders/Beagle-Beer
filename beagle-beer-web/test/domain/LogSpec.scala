@@ -7,7 +7,7 @@ import models._
 import org.specs2.mutable.Specification
 import play.api.db.slick.Config.driver.simple._
 import java.util.Date
-import io.util.StringFileUtil.DateString
+import io.util.StringExtras.DateString
 
 /**
  * Checks conformance to requirements of the Device model, and persistence.

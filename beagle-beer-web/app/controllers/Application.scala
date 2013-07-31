@@ -69,9 +69,6 @@ object Application extends Controller {
           ("Database URL", session.conn.getMetaData.getURL),
           ("Connection class", session.conn.getClass.getName)
         )
-
-
-
         Ok(views.html.status(vmStats))
     }
   }

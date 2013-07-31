@@ -20,6 +20,11 @@ class DS1820Reader(deviceLocation: String) {
 
   val deviceId: String = DS1820NameParser.extractDeviceId(deviceLocation)
 
+  /** 
+   * Reads this device using the current thread.  Reading a device takes
+   * ~700ms, so it's recommended that readAsync is used in preference to
+   * this method. 
+   */
   def read: (String, Float) = {
     val lines = Source.fromFile(deviceLocation).getLines()
     val crcLine = lines.next
@@ -31,6 +36,10 @@ class DS1820Reader(deviceLocation: String) {
     (deviceLocation, tempChars.toFloat / 1000)
   }
 
+  /** 
+   * Reads this device, returning a Future containing the result.  The Future
+   * should take ~700ms to complete.
+   */
   def readAsync: Future[(String, Float)] = {
     future { blocking { read } }
   }
@@ -48,6 +57,10 @@ class DS1820Scanner(location: String) {
     DS1820BulkReader.readAll(scan)
   }
 
+  /**
+   * Scans the location this was constructed with for DS1820 probes, returning a List
+   * of the probe locations.
+   */
   def scan: List[String] = {
     val dir: File = new File(location)
     require(dir.isDirectory)
@@ -61,6 +74,9 @@ class DS1820Scanner(location: String) {
 
 }
 
+/**
+ * Use to read many DS1820 probes in parallel.
+ */
 object DS1820BulkReader {
 
   /**
@@ -74,7 +90,11 @@ object DS1820BulkReader {
     if (readCount == 0) {
       Nil
     } else {
+      // read all of the probes in parallel, resulting in a single Future
+      // that will complete with all of it's Futures are complete.
       val futureReads = Future.sequence(readAllAsync(paths))
+      
+      // wait for the future containing all the reads in ready.
       Await.result(futureReads, readCount seconds)
     }
   }
