@@ -36,6 +36,9 @@ $(document).ready(function () {
    * Create the temperature gauges and start polling
    */
   createGauges();
+  // do an immediate poll
+  pollForLoggerRunning();
+  // now start regular polling
   INDEX_PAGE.runningPollId = setInterval(pollForLoggerRunning, 1000);
 
 });
