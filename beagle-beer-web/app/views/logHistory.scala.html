@@ -16,7 +16,11 @@
           <tr>
             <td>@log.start</td>
             <td>@log.end.getOrElse("-")</td>
-            <td><a href="@routes.Application.logData(log.id.get)">View</a> </td>
+            <td>
+              <a href="@routes.Application.logData(log.id.get)">View</a>
+              <a href="@routes.Application.logDataJson(log.id.get)">Json</a>
+              <a href="@routes.Application.logPlot(log.id.get)">Plot</a>
+            </td>
           </tr>
         }
         </tbody>

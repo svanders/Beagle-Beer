@@ -7,6 +7,7 @@ import play.api.Play.current
 import controllers.util.FlashScope
 import FlashScope.emptyFlash
 import models.{SamplesDb, DS1820sDb, LogsDb}
+import play.api.libs.json.Json
 
 object Application extends Controller {
 
@@ -31,6 +32,19 @@ object Application extends Controller {
       val result = SamplesDb.find(logId)
       Ok(views.html.logData(result._1, result._2))
     }
+  }
+
+  def logDataJson(logId: Int) = Action {
+    import models.SamplesJson.sampleWrites
+    DB.withSession {
+      implicit session =>
+        val result = SamplesDb.find(logId)
+        Ok(Json.toJson(result._2))
+    }
+  }
+
+  def logPlot(logId: Int) = Action {
+        Ok(views.html.logPlot(logId))
   }
 
   def status = Action {

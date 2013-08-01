@@ -1,0 +1,13 @@
+@(logId: Int)(implicit flash: play.api.mvc.Flash)
+
+@main("Beagle Beer", "Log History") {
+
+
+}
+
+<script type="text/javascript">
+  var dataUrl = "@routes.Application.logDataJson(logId)"
+</script>
+
+<script src="@routes.Assets.at("javascripts/plot.js")"></script>
+

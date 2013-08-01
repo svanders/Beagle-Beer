@@ -6,6 +6,8 @@
 GET         /                                 controllers.Application.index
 GET         /logHistory.html                  controllers.Application.logHistory
 GET         /logData.html/:logId              controllers.Application.logData(logId: Integer)
+GET         /logData.json/:logId              controllers.Application.logDataJson(logId: Integer)
+GET         /logPlot.html/:logId              controllers.Application.logPlot(logId: Integer)
 GET         /status.html                      controllers.Application.status
 GET         /deviceSetup.html                 controllers.DeviceSetup.view
 GET         /deviceScan.html                  controllers.DeviceSetup.scan
