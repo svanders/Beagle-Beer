@@ -6,9 +6,9 @@ import java.text.{SimpleDateFormat, DateFormat}
 import java.util.Date
 
 
-object StringFileUtil {
+object StringExtras {
 
-  val dateFormat = "yyyy-MM-dd kk:mm:ss"
+  
 
   /**
    * Provides the ability to write to a file, with only the file name as a String.
@@ -37,6 +37,8 @@ object StringFileUtil {
    * @param s
    */
   implicit class DateString(val s: String) {
+
+    val dateFormat = "yyyy-MM-dd kk:mm:ss"
 
     def toDate: Date = toDate(dateFormat)
 

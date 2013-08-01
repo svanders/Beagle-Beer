@@ -38,6 +38,8 @@ object DeviceSetup extends Controller {
           val reads = scala.concurrent.Future {
             readDevices(devices)
           }
+          // use an Async to make another thread be used to wait for the reads to complete
+          // so that play can use this one to service other requests.
           Async {
             reads.map(d => Ok(views.html.deviceSetup(scanForm.fill(scanDir), probeForm.fill(loadDevices), d)))
           }
@@ -75,7 +77,6 @@ object DeviceSetup extends Controller {
   }
 
   def loadDevices: List[DS1820] = {
-
     def scan: List[DS1820] = {
       if ((new File(scanDir)).isDirectory) {
         val paths = new DS1820Scanner(scanDir).scan
@@ -98,7 +99,6 @@ object DeviceSetup extends Controller {
           devices
         }
     }
-
   }
 
 

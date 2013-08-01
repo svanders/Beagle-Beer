@@ -2,7 +2,7 @@ package io
 
 
 import org.slf4j.LoggerFactory
-import io.util.StringFileUtil.StringStream
+import io.util.StringExtras.StringStream
 
 /**
  * Basic GPIO controls for a beagle board.  Should only be access by a single thread
