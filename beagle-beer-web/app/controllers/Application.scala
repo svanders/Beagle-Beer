@@ -19,33 +19,6 @@ object Application extends Controller {
     }
   }
 
-  def logHistory = Action {
-    DB.withSession {
-      implicit session =>
-        Ok(views.html.logHistory(LogsDb.all))
-    }
-  }
-
-  def logData(logId: Int) = Action {
-    DB.withSession {
-      implicit session =>
-      val result = SamplesDb.find(logId)
-      Ok(views.html.logData(result._1, result._2))
-    }
-  }
-
-  def logDataJson(logId: Int) = Action {
-    import models.SamplesJson.sampleWrites
-    DB.withSession {
-      implicit session =>
-        val result = SamplesDb.find(logId)
-        Ok(Json.toJson(result._2))
-    }
-  }
-
-  def logPlot(logId: Int) = Action {
-        Ok(views.html.logPlot(logId))
-  }
 
   def status = Action {
 

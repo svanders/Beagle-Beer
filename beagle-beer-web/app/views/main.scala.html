@@ -43,7 +43,7 @@
           <div class="nav-collapse collapse">
             <ul class="nav">
               <li @if(tab == "Home") { class="active" } ><a href="@routes.Application.index()">Home</a></li>
-              <li @if(tab == "Log History") { class="active" } ><a href="@routes.Application.logHistory">Log History</a></li>
+              <li @if(tab == "Log History") { class="active" } ><a href="@routes.Logging.logHistory">Log History</a></li>
               <li @if(tab == "Status") { class="active" }><a href="@routes.Application.status()">Status</a></li>
               <li @if(tab == "Setup") { class="active" }><a href="@routes.DeviceSetup.view()">Device Setup</a></li>
             </ul>

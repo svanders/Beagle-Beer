@@ -3,20 +3,23 @@ package controllers
 import play.api.mvc.{Action, Controller}
 import org.slf4j.LoggerFactory
 import play.api.db.slick.DB
-import models.{Sample, DS1820sDb}
+import models.{SamplesDb, LogsDb, Sample, DS1820sDb}
 
+import controllers.util.FlashScope
+import FlashScope.emptyFlash
 import task.{LoggerTaskManager, LatestValueListener, DebugLogLoggerTaskListener, LoggerTask}
 import play.api.Play.current
 import play.api.libs.json.Json
 
 /**
- * Created with IntelliJ IDEA.
- * User: simonvandersluis
- * Date: 14/07/13
- * Time: 5:03 PM
- * To change this template use File | Settings | File Templates.
+ * Web controller for all Logging actions.
+ * Starting/Stopping the logger
+ * Getting the current logging/not logging status of the logger
+ * Getting the latest value
+ * Getting a list of all saved logs
+ * Getting the contents of a log in several formats
  */
-object Logger extends Controller {
+object Logging extends Controller {
 
   def start = Action {
     if (LoggerTaskManager isRunning) Ok("Already Running")
@@ -50,6 +53,34 @@ object Logger extends Controller {
 
   def isRunning = Action {
     Ok(LoggerTaskManager.isRunning.toString)
+  }
+
+  def logHistory = Action {
+    DB.withSession {
+      implicit session =>
+        Ok(views.html.logHistory(LogsDb.all))
+    }
+  }
+
+  def logData(logId: Int) = Action {
+    DB.withSession {
+      implicit session =>
+        val result = SamplesDb.find(logId)
+        Ok(views.html.logData(result._1, result._2))
+    }
+  }
+
+  def logDataJson(logId: Int) = Action {
+    import models.SamplesJson.sampleWrites
+    DB.withSession {
+      implicit session =>
+        val result = SamplesDb.find(logId)
+        Ok(Json.toJson(result._2))
+    }
+  }
+
+  def logPlot(logId: Int) = Action {
+    Ok(views.html.logPlot(logId))
   }
 }
 
