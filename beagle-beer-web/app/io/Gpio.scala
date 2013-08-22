@@ -3,6 +3,7 @@ package io
 
 import org.slf4j.LoggerFactory
 import io.util.StringExtras.StringStream
+import java.io.File
 
 /**
  * Basic GPIO controls for a beagle board.  Should only be access by a single thread
@@ -39,7 +40,9 @@ class Gpio(gpio: String) extends AutoCloseable {
   }
 
   override def close = {
-    unexport.streamWrite(gpio)
+    if (new File(unexport + "/" + gpio).exists())  {
+      unexport.streamWrite(gpio)
+    }
     opened = false
   }
 

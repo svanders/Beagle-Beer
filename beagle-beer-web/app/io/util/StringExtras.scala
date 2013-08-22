@@ -1,6 +1,6 @@
 package io.util
 
-import java.io.{IOException, FileOutputStream}
+import java.io.{FileWriter, IOException, FileOutputStream}
 import org.slf4j.LoggerFactory
 import java.text.{SimpleDateFormat, DateFormat}
 import java.util.Date
@@ -19,9 +19,10 @@ object StringExtras {
     val log = LoggerFactory.getLogger(this.getClass)
 
     def streamWrite(data: String) = {
-      val out = new FileOutputStream(s)
+      val out = new FileWriter(s)
       try {
-        out.write(data.getBytes)
+        out.write(data)
+        out.flush
       } catch {
         case ioe: IOException => log.error("Error writing to " + s, ioe)
       } finally {

@@ -7,6 +7,7 @@ import scala.util.matching.Regex
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import org.slf4j.LoggerFactory
 
 /**
  * Reads the temperature from a DS1820 1-Wire device.  Assumes the actual control
@@ -15,33 +16,44 @@ import scala.concurrent.duration._
  * @param deviceLocation The filesystem location of the DS1820 output.
  */
 class DS1820Reader(deviceLocation: String) {
-   require(deviceLocation != null)
-   require(DS1820NameParser.isDS1820(deviceLocation))
+  require(deviceLocation != null)
+  require(DS1820NameParser.isDS1820(deviceLocation))
 
+  val log = LoggerFactory.getLogger(this.getClass)
   val deviceId: String = DS1820NameParser.extractDeviceId(deviceLocation)
 
-  /** 
+  /**
    * Reads this device using the current thread.  Reading a device takes
    * ~700ms, so it's recommended that readAsync is used in preference to
    * this method. 
    */
   def read: (String, Float) = {
-    val lines = Source.fromFile(deviceLocation).getLines()
-    val crcLine = lines.next
-    val temperatureLine = lines.next
-    if (! crcLine.endsWith("YES")) {
-      throw new RuntimeException("CRC error on DS1820 read")
+    try {
+      val lines = Source.fromFile(deviceLocation).getLines()
+      val crcLine = lines.next
+      val temperatureLine = lines.next
+      if (!crcLine.endsWith("YES")) {
+        throw new RuntimeException("CRC error on DS1820 read")
+      }
+      val tempChars = temperatureLine.substring(temperatureLine.indexOf("t=") + 2)
+      (deviceLocation, tempChars.toFloat / 1000)
+    } catch {
+      case e: Exception =>
+        log.error("Unable to read DS1820 - " + deviceLocation, e)
+        (deviceLocation, Float.NaN)
     }
-    val tempChars = temperatureLine.substring(temperatureLine.indexOf("t=") + 2)
-    (deviceLocation, tempChars.toFloat / 1000)
   }
 
-  /** 
+  /**
    * Reads this device, returning a Future containing the result.  The Future
    * should take ~700ms to complete.
    */
   def readAsync: Future[(String, Float)] = {
-    future { blocking { read } }
+    future {
+      blocking {
+        read
+      }
+    }
   }
 
 }
@@ -93,7 +105,7 @@ object DS1820BulkReader {
       // read all of the probes in parallel, resulting in a single Future
       // that will complete with all of it's Futures are complete.
       val futureReads = Future.sequence(readAllAsync(paths))
-      
+
       // wait for the future containing all the reads in ready.
       Await.result(futureReads, readCount seconds)
     }
@@ -101,7 +113,7 @@ object DS1820BulkReader {
 
   private def readAllAsync(paths: List[String]): List[Future[(String, Float)]] = {
     paths.map {
-      path =>   new DS1820Reader(path).readAsync
+      path => new DS1820Reader(path).readAsync
     }
   }
 }
@@ -110,8 +122,8 @@ object DS1820NameParser {
 
   def extractDeviceId(path: String): String = {
     extractDeviceIdOption(path) match {
-       case Some(id) => id
-       case None => throw new RuntimeException("Path '" + path + "' does not represent a DS1820")
+      case Some(id) => id
+      case None => throw new RuntimeException("Path '" + path + "' does not represent a DS1820")
     }
   }
 
