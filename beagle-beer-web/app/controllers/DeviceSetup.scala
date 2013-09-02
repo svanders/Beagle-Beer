@@ -78,7 +78,7 @@ object DeviceSetup extends Controller {
 
   def loadDevices: List[DS1820] = {
     def scan: List[DS1820] = {
-      if ((new File(scanDir)).isDirectory) {
+      if (new File(scanDir).isDirectory) {
         val paths = new DS1820Scanner(scanDir).scan
         val ds1820s = for {
           path <- paths
@@ -102,7 +102,7 @@ object DeviceSetup extends Controller {
   }
 
 
-  def readDevices(devices: List[DS1820]): Map[String, Float] = {
+  def readDevices(devices: List[DS1820]): Map[String, Option[Float]] = {
     val reads = DS1820BulkReader.readAll(devices.map(d => d.path))
     reads.toMap
   }

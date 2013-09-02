@@ -15,10 +15,10 @@ class DS1820Spec extends Specification {
 
    "The reader" should {
      "be able to read the output from a DS1820 temperature sensor" in {
-       reader.read  must be equalTo(("test/data/28-000002a6c659/w1_slave", 20.111f)) }
+       reader.read  must be equalTo(("test/data/28-000002a6c659/w1_slave", Some(20.111f))) }
        
      "be able to read negative temperatures" in {
-       negativeReader.read must be equalTo(("test/data/28-000002a6c660/w1_slave", -22.123f))
+       negativeReader.read must be equalTo(("test/data/28-000002a6c660/w1_slave", Some(-22.123f)))
      }  
    }
 

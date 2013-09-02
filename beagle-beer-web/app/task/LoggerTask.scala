@@ -9,7 +9,6 @@ import play.api.Play.current
 
 
 import scala.annotation.tailrec
-import play.api.libs.json.Json
 import models.Sample
 import scala.Some
 import models.Log
@@ -71,7 +70,7 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
 
   def isRunning = on
 
-  private def createSample(read: (String, Float), logRecord: Log, now: Date): Sample = {
+  private def createSample(read: (String, Option[Float]), logRecord: Log, now: Date): Sample = {
     val device = devices.find(d => d.path == read._1).get // should always find the correct device
     val sample = new Sample(None, logRecord.id.get, device.id.get, now, read._2)
     return sample

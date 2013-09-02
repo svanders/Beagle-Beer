@@ -1,4 +1,4 @@
-@(scanForm: Form[String], probeForm: Form[List[DS1820]], readings: Map[String, Float])(implicit flash: play.api.mvc.Flash)
+@(scanForm: Form[String], probeForm: Form[List[DS1820]], readings: Map[String, Option[Float]])(implicit flash: play.api.mvc.Flash)
 @import controllers.util.FlashScope
 @import controllers.util.FlashScope
 
@@ -59,7 +59,7 @@
             @helper.inputText(probe("name"), '_label -> "Name")
             @helper.checkbox(probe("enabled"), '_label -> "Enabled", '_error -> probeForm.error(probe.name))
             @helper.checkbox(probe("master"), '_label -> "Master")
-            <td>@readings.get(probe("path").value.get)</td>
+            <td>@readings.get(probe("path").value.getOrElse("--"))</td>
           </tr>
         }
         </tbody>

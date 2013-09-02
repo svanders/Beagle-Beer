@@ -24,7 +24,7 @@ class SampleSpec extends Specification {
           implicit session =>
             val log: Log = createLog
             val ds1820 = createDs1820("x")
-            val found = SamplesDb.insert(Sample(None, log.id.get, ds1820.id.get, new Date, 21.2F))
+            val found = SamplesDb.insert(Sample(None, log.id.get, ds1820.id.get, new Date, Some(21.2F)))
             found.id.get must be greaterThan 0
         }
       }
@@ -36,27 +36,22 @@ class SampleSpec extends Specification {
             val log: Log = createLog
             val ds1820b = createDs1820("dsb")
             val ds1820a = createDs1820("dsa")
-            val six = SamplesDb.insert(Sample(None, log.id.get, ds1820b.id.get, "2013-07-16 10:00:00".toDate, 6F))
-            val four = SamplesDb.insert(Sample(None, log.id.get, ds1820b.id.get, "2013-07-14 10:00:00".toDate, 4F))
-            val five = SamplesDb.insert(Sample(None, log.id.get, ds1820b.id.get, "2013-07-15 10:00:00".toDate, 5F))
+            val six = SamplesDb.insert(Sample(None, log.id.get, ds1820b.id.get, "2013-07-16 10:00:00".toDate, Some(6F)))
+            val four = SamplesDb.insert(Sample(None, log.id.get, ds1820b.id.get, "2013-07-14 10:00:00".toDate, Some(4F)))
+            val five = SamplesDb.insert(Sample(None, log.id.get, ds1820b.id.get, "2013-07-15 10:00:00".toDate, Some(5F)))
 
-            val three = SamplesDb.insert(Sample(None, log.id.get, ds1820a.id.get, "2013-07-16 10:00:00".toDate, 3F))
-            val one = SamplesDb.insert(Sample(None, log.id.get, ds1820a.id.get, "2013-07-14 10:00:00".toDate, 1F))
-            val two = SamplesDb.insert(Sample(None, log.id.get, ds1820a.id.get, "2013-07-15 10:00:00".toDate, 2F))
+            val three = SamplesDb.insert(Sample(None, log.id.get, ds1820a.id.get, "2013-07-16 10:00:00".toDate, Some(3F)))
+            val one = SamplesDb.insert(Sample(None, log.id.get, ds1820a.id.get, "2013-07-14 10:00:00".toDate, Some(1F)))
+            val two = SamplesDb.insert(Sample(None, log.id.get, ds1820a.id.get, "2013-07-15 10:00:00".toDate, None))
 
 
             val found = SamplesDb.find(log.id.get)
             found._1 must be equalTo (List(ds1820a, ds1820b))
             found._2.map(l => l.map(s => s.value)) must be equalTo (List(
-              List(1F, 4F),
-              List(2F, 5F),
-              List(3F, 6F)
+              List(Some(1F), Some(4F)),
+              List(None, Some(5F)),
+              List(Some(3F), Some(6F))
             ))
-
-          //            found.mapValues(l => l.map(s => s.value)) must be equalTo Map(
-          //              (ds1820a -> List(1F, 2F, 3F)),
-          //              (ds1820b -> List(4F, 5F, 6F))
-          //            )
         }
       }
   }

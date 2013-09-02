@@ -27,20 +27,20 @@ class DS1820Reader(deviceLocation: String) {
    * ~700ms, so it's recommended that readAsync is used in preference to
    * this method. 
    */
-  def read: (String, Float) = {
+  def read: (String, Option[Float]) = {
     try {
       val lines = Source.fromFile(deviceLocation).getLines()
-      val crcLine = lines.next
-      val temperatureLine = lines.next
+      val crcLine = lines.next()
+      val temperatureLine = lines.next()
       if (!crcLine.endsWith("YES")) {
         throw new RuntimeException("CRC error on DS1820 read")
       }
       val tempChars = temperatureLine.substring(temperatureLine.indexOf("t=") + 2)
-      (deviceLocation, tempChars.toFloat / 1000)
+      (deviceLocation, Some(tempChars.toFloat / 1000))
     } catch {
       case e: Exception =>
         log.error("Unable to read DS1820 - " + deviceLocation, e)
-        (deviceLocation, Float.NaN)
+        (deviceLocation, None)
     }
   }
 
@@ -48,7 +48,7 @@ class DS1820Reader(deviceLocation: String) {
    * Reads this device, returning a Future containing the result.  The Future
    * should take ~700ms to complete.
    */
-  def readAsync: Future[(String, Float)] = {
+  def readAsync: Future[(String, Option[Float])] = {
     future {
       blocking {
         read
@@ -65,7 +65,7 @@ class DS1820Reader(deviceLocation: String) {
 class DS1820Scanner(location: String) {
   require(location != null)
 
-  def readAll: List[(String, Float)] = {
+  def readAll: List[(String, Option[Float])] = {
     DS1820BulkReader.readAll(scan)
   }
 
@@ -94,10 +94,10 @@ object DS1820BulkReader {
   /**
    * Reads all the DS1820 specified by paths in parallel.  It will suspend the current thread
    * while waiting for the reads to complete, usually ~ 700 ms.
-   * @param paths
+   * @param paths The locations of the sensors.
    * @return
    */
-  def readAll(paths: List[String]): List[(String, Float)] = {
+  def readAll(paths: List[String]): List[(String, Option[Float])] = {
     val readCount = paths.size
     if (readCount == 0) {
       Nil
@@ -111,7 +111,7 @@ object DS1820BulkReader {
     }
   }
 
-  private def readAllAsync(paths: List[String]): List[Future[(String, Float)]] = {
+  private def readAllAsync(paths: List[String]): List[Future[(String, Option[Float])]] = {
     paths.map {
       path => new DS1820Reader(path).readAsync
     }

@@ -1,11 +1,8 @@
 package task
 
 import models._
-import java.util.Date
 import org.slf4j.LoggerFactory
-import play.api.libs.json.Json
 import play.api.db.slick.DB
-import models.Log
 import models.Sample
 
 /**
