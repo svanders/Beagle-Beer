@@ -68,7 +68,6 @@ object DeviceSetup extends Controller {
           probeForm.bindFromRequest.fold(
             formWithErrors => BadRequest(views.html.deviceSetup(scanForm.fill(scanDir), formWithErrors, Map())),
             value => {
-              LoggerTaskManager.destroy
               value.foreach(DS1820sDb.insertOrUpdate)
               Redirect(routes.DeviceSetup.view).flashing(FlashScope.success -> "Device Configuration Saved")
             }
@@ -129,6 +128,9 @@ object DeviceSetup extends Controller {
       verifying("One (only) probe must be selected as the master", {
       f => f.filter(d => d.master).size == 1
     })
+      verifying("Cannot update probe configuration while logging, please stop the current log and try again", {
+       f => !LoggerTaskManager.isRunning
+   })
   )
 
 
