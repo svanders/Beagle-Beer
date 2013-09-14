@@ -15,7 +15,7 @@ object Application extends Controller {
   def index = Action {
     DB.withSession {
       implicit session =>
-        Ok(views.html.index(DS1820sDb.all))
+        Ok(views.html.index(DS1820sDb.filterByEnabled(true)))
     }
   }
 

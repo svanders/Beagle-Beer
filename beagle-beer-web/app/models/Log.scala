@@ -15,12 +15,16 @@ import scala.slick.lifted.ColumnOption.DBType
  */
 case class Log(id: Option[Int], start: Date, end: Option[Date]) extends Persistent {
 
-
-
 }
 
 
+
 object LogsDb extends Table[Log]("Log") with InsertOrUpdate[Log] {
+
+  /**
+   * A singleton Log to use when idling, ie not recording samples to the DB.
+   */
+  val ildeLog = Log(Some(-1), new Date(), None)
 
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
   def start = column[Date]("start", O.NotNull)
@@ -30,7 +34,7 @@ object LogsDb extends Table[Log]("Log") with InsertOrUpdate[Log] {
 
 
 
-  override def update(log: Log)(implicit session: Session) = {
+  override def update(log: Log)(implicit session: Session): Log = {
     require(log != null)
     val query = for ( l <- LogsDb if l.id === log.id) yield l
     query.update(log)
@@ -44,7 +48,7 @@ object LogsDb extends Table[Log]("Log") with InsertOrUpdate[Log] {
     log.copy(id = Some(id))
   }
 
-  def all(implicit session: Session) = {
+  def all(implicit session: Session): List[Log] = {
     Query(LogsDb).sortBy(_.start).list.reverse
   }
 

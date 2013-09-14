@@ -26,7 +26,7 @@ object DebugLogLoggerTaskListener extends LoggerTaskListener {
   val log = LoggerFactory.getLogger("task.DebugLogLoggerTaskListener")
 
   override def receiveRead(samples: List[Sample]) =
-    for (sample <- samples) log.debug("Recorded sample "  + sample)
+    for (sample <- samples) log.debug("Recorded sample " + sample)
 }
 
 /**
@@ -37,7 +37,7 @@ object LatestValueListener extends LoggerTaskListener {
   var latest: List[Sample] = List()
 
   override def receiveRead(samples: List[Sample]) {
-     latest = samples
+    latest = samples
   }
 
   def clear: Unit = {
@@ -49,11 +49,15 @@ object LatestValueListener extends LoggerTaskListener {
  * Saves the Samples to the DB
  */
 object SamplePersistingListener extends LoggerTaskListener {
+
   import play.api.Play.current
+
   override def receiveRead(samples: List[Sample]) {
-    DB.withTransaction {
-      implicit session =>
-        samples.foreach(s => SamplesDb.insert(s))
+    if (LoggerTaskManager.isRunning) {
+      DB.withTransaction {
+        implicit session =>
+          samples.foreach(s => SamplesDb.insert(s))
+      }
     }
   }
 }

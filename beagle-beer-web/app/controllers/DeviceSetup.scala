@@ -63,16 +63,17 @@ object DeviceSetup extends Controller {
 
   def save = Action {
     implicit request =>
-      DB.withTransaction {
-        implicit session =>
-          probeForm.bindFromRequest.fold(
-            formWithErrors => BadRequest(views.html.deviceSetup(scanForm.fill(scanDir), formWithErrors, Map())),
-            value => {
+      probeForm.bindFromRequest.fold(
+        formWithErrors => BadRequest(views.html.deviceSetup(scanForm.fill(scanDir), formWithErrors, Map())),
+        value => {
+          DB.withTransaction {
+            implicit session =>
               value.foreach(DS1820sDb.insertOrUpdate)
-              Redirect(routes.DeviceSetup.view).flashing(FlashScope.success -> "Device Configuration Saved")
-            }
-          )
-      }
+          }
+          LoggerTaskManager.initialise
+          Redirect(routes.DeviceSetup.view).flashing(FlashScope.success -> "Device Configuration Saved")
+        }
+      )
   }
 
   def loadDevices: List[DS1820] = {
@@ -129,8 +130,8 @@ object DeviceSetup extends Controller {
       f => f.filter(d => d.master).size == 1
     })
       verifying("Cannot update probe configuration while logging, please stop the current log and try again", {
-       f => !LoggerTaskManager.isRunning
-   })
+      f => !LoggerTaskManager.isRunning
+    })
   )
 
 

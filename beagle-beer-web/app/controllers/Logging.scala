@@ -41,12 +41,12 @@ object Logging extends Controller {
 
   def latest = Action {
     import models.SamplesJson.sampleWrites
-    val latest: List[Sample] = if (LoggerTaskManager.isRunning) LatestValueListener.latest // simply get the latest value from loggerTask
+    val latest: List[Sample] = if (LoggerTaskManager.isInitialised) LatestValueListener.latest // simply get the latest value from loggerTask
     else {
       // no values to return
       List()
     }
-    //log.debug("Latest reading=" + Json.toJson(latest))
+    println("Latest reading=" + Json.toJson(latest))
     Ok(Json.toJson(latest))
   }
 

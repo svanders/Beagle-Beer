@@ -25,21 +25,13 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
 
   val dLog = LoggerFactory.getLogger(this.getClass)
 
-  private var on = false
+  var logRecord = LogsDb.ildeLog
+  var endThread = false
 
   def run: Unit = {
 
-    on = true
 
-    // TODO - create the Log somewhere else
-    val logRecord =  DB.withTransaction {
-      implicit session =>
-        LogsDb.insert(Log(None, new Date, None))
-    }
-
-    dLog.debug("Started temperature log " + logRecord + " using " + devices.size + " sensors")
-
-    while (on) {
+    while (!endThread) {
       val now = new Date
       val reads = DS1820BulkReader.readAll(devices.map(d => d.path))
       dLog.debug("read " + reads.size + " devices")
@@ -55,32 +47,28 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
       sleepWithFastWake(logIntervalMillis, 200)
     }
 
-    // TODO - end the Log somewhere else
-    val endedLogRecord = DB.withTransaction {
-      implicit session =>
-        LogsDb.update(logRecord.copy(end = Some(new Date)))
-    }
-    dLog.debug("Ended temperature log " + endedLogRecord)
+
   }
 
-  def stop = {
-    dLog.debug("stopping")
-    on = false
+  def destroy = {
+    dLog.debug("destroying")
+    endThread = true
   }
 
-  def isRunning = on
+  def isRunning: Boolean = !logRecord.equals(LogsDb.ildeLog)
 
   private def createSample(read: (String, Option[Float]), logRecord: Log, now: Date): Sample = {
     val device = devices.find(d => d.path == read._1).get // should always find the correct device
+   // bug here logRecord.id is None when idling
     val sample = new Sample(None, logRecord.id.get, device.id.get, now, read._2)
     return sample
   }
 
-   /**
-    * Sleeps the current thread for a specified time, but checks for the on flag == false
-    * at the specified poll time out.  Wakes the thread after the specified time or
-    * when on == false, whichever comes first. 
-    */
+  /**
+   * Sleeps the current thread for a specified time, but checks for the on flag == false
+   * at the specified poll time out.  Wakes the thread after the specified time or
+   * when on == false, whichever comes first.
+   */
   def sleepWithFastWake(sleepTimeMillis: Int, pollForWakeTimeMillis: Int): Unit = {
     require(sleepTimeMillis >= pollForWakeTimeMillis)
 
@@ -90,7 +78,7 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
     @tailrec
     def sleep: Unit = {
       Thread.sleep(pollForWakeTimeMillis)
-      val again = new Date().getTime - sleepStart < sleepTimeMillis && on
+      val again = new Date().getTime - sleepStart < sleepTimeMillis && !endThread
       if (again) sleep
     }
   }
@@ -106,61 +94,87 @@ object LoggerTaskManager {
   private var task: Option[LoggerTask] = None
 
 
-  def isRunning = {
-    loggerTask match {
+
+  def isInitialised: Boolean = {
+    task match {
       case None => false
-      case Some(task) => task.isRunning
+      case Some(t) => true
     }
   }
 
-  def start: Boolean = {
-    loggerTask match {
+
+  def isRunning: Boolean = {
+    task match {
       case None => false
-      case Some(task) => {
-        if (!task.isRunning) {
-          new Thread(task).start
+      case Some(t) => t.isRunning
+    }
+  }
+
+  def start: Unit = {
+    task match {
+      case None => ;
+      case Some(t) => {
+        if (!t.isRunning) {
+          val logRecord = DB.withTransaction {
+            implicit session =>
+              val log = LogsDb.insert(Log(None, new Date, None))
+              t.logRecord = log
+          }
+          dLog.debug("Started temperature log " + logRecord)
         }
-        true
       }
     }
   }
 
   def stop = {
-    loggerTask match {
-      case Some(task) => {
-        if (task.isRunning) {
-          task.stop
+    task match {
+      case Some(t) => {
+        if (t.isRunning) {
+          val endedLogRecord = DB.withTransaction {
+            implicit session =>
+              LogsDb.update(t.logRecord.copy(end = Some(new Date)))
+          }
+          t.logRecord = LogsDb.ildeLog
+          dLog.debug("Ended temperature log " + endedLogRecord)
         }
+      }
+      case None => ;
+    }
+
+  }
+
+  def destroy = {
+    task match {
+      case Some(t) => {
+        if (t.isRunning) {
+          stop
+        }
+        t.destroy
       }
       case _ => ;
     }
   }
 
-  def destroy = {
-    if (isRunning) {
-      stop
-    }
-    task = None
-  }
 
+//  private def loggerTask: Option[LoggerTask] = {
+//    task match {
+//      case None => task = initialise // try and create one
+//      case _ => ;
+//    }
+//    task
+//  }
 
-  private def loggerTask: Option[LoggerTask] = {
-    task match {
-      case None => task = createTask // try and create one
-      case _ => ;
-    }
-    task
-  }
-
-  private def createTask: Option[LoggerTask] = {
+  def initialise: Unit = {
     DB.withSession {
       implicit session =>
-        val devices = DS1820sDb.all
+        val devices = DS1820sDb.filterByEnabled(true)
         if (devices isEmpty) {
           dLog.error("No DS1820s are configured, unable to create Logger Task")
-          None
+          task = None
         } else {
-          Some(new LoggerTask(10000, devices, List(DebugLogLoggerTaskListener, LatestValueListener, SamplePersistingListener)))
+          val newTask = new LoggerTask(10000, devices, List(DebugLogLoggerTaskListener, LatestValueListener, SamplePersistingListener))
+          new Thread(newTask).start
+          task = Some(newTask)
         }
     }
   }
