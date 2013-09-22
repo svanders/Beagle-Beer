@@ -13,6 +13,7 @@ import models.Sample
 import scala.Some
 import models.Log
 import models.DS1820
+import scala.slick.driver.H2Driver.simple._
 
 /**
  * When started, records a new Log in the database, records Measurements every 10 seconds,
@@ -59,7 +60,7 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
 
   private def createSample(read: (String, Option[Float]), logRecord: Log, now: Date): Sample = {
     val device = devices.find(d => d.path == read._1).get // should always find the correct device
-   // bug here logRecord.id is None when idling
+    // bug here logRecord.id is None when idling
     val sample = new Sample(None, logRecord.id.get, device.id.get, now, read._2)
     return sample
   }
@@ -94,7 +95,6 @@ object LoggerTaskManager {
   private var task: Option[LoggerTask] = None
 
 
-
   def isInitialised: Boolean = {
     task match {
       case None => false
@@ -110,40 +110,34 @@ object LoggerTaskManager {
     }
   }
 
-  def start: Unit = {
+  def start(name: String, targetTemperature: Int)(implicit session: Session): Unit = {
     task match {
       case None => ;
       case Some(t) => {
         if (!t.isRunning) {
-          val logRecord = DB.withTransaction {
-            implicit session =>
-              val log = LogsDb.insert(Log(None, new Date, None))
-              t.logRecord = log
-          }
-          dLog.debug("Started temperature log " + logRecord)
+          val log = LogsDb.insert(Log(None, name, targetTemperature, new Date, None))
+          t.logRecord = log
+          dLog.debug("Started temperature log " + log)
         }
       }
     }
   }
 
-  def stop = {
+  def stop(implicit session: Session) = {
     task match {
       case Some(t) => {
         if (t.isRunning) {
-          val endedLogRecord = DB.withTransaction {
-            implicit session =>
-              LogsDb.update(t.logRecord.copy(end = Some(new Date)))
-          }
-          t.logRecord = LogsDb.ildeLog
+          val endedLogRecord = LogsDb.update(t.logRecord.copy(end = Some(new Date)))
           dLog.debug("Ended temperature log " + endedLogRecord)
         }
+        t.logRecord = LogsDb.ildeLog
       }
       case None => ;
     }
 
   }
 
-  def destroy = {
+  def destroy(implicit session: Session) = {
     task match {
       case Some(t) => {
         if (t.isRunning) {
@@ -156,13 +150,13 @@ object LoggerTaskManager {
   }
 
 
-//  private def loggerTask: Option[LoggerTask] = {
-//    task match {
-//      case None => task = initialise // try and create one
-//      case _ => ;
-//    }
-//    task
-//  }
+  //  private def loggerTask: Option[LoggerTask] = {
+  //    task match {
+  //      case None => task = initialise // try and create one
+  //      case _ => ;
+  //    }
+  //    task
+  //  }
 
   def initialise: Unit = {
     DB.withSession {

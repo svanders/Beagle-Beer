@@ -1,10 +1,35 @@
-@(ds1820s: List[DS1820])(implicit flash: play.api.mvc.Flash)
+@(startForm: Form[(String, Int)], ds1820s: List[DS1820])(implicit flash: play.api.mvc.Flash)
+@import controllers.util.FlashScope
+@import helper.twitterBootstrap._
 
 @main("Beagle Beer", "Home") {
 
-  <div style="width: 300px">
-    <div id="startLogger" class="btn">Start Logging</div>
-    <div id="stopLogger" class="btn">Stop Logging</div>
+  <div id="startLogger">
+    @if(startForm.hasErrors) {
+      @helper.alert(FlashScope.error, "Please correct form errors and try again")
+    }
+
+    @if(startForm.hasGlobalErrors) {
+      <ul>
+      @for(error <- startForm.globalErrors) {
+        <li>@error.message</li>
+      }
+      </ul>
+    }
+
+    @helper.form(action = routes.Logging.start) {
+      @helper.inputText(startForm("Name / Label"))
+      @helper.inputText(startForm("Target Temperature"))
+      <button type="submit" class="btn" >Start Logging</button>
+    }
+
+
+  </div>
+
+  <div id="stopLogger">
+    @helper.form(action = routes.Logging.stop) {
+      <button type="submit" class="btn" >Stop Logging</button>
+    }
   </div>
 
   <div id="gauges">

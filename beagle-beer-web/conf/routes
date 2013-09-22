@@ -11,8 +11,8 @@ GET         /deviceSetup.html                 controllers.DeviceSetup.view
 GET         /deviceScan.html                  controllers.DeviceSetup.scan
 POST        /deviceSetup.html                 controllers.DeviceSetup.save
 GET         /element/:element/:command        controllers.Element.switch(element: String, command:Boolean)
-GET         /logger/start                     controllers.Logging.start
-GET         /logger/stop                      controllers.Logging.stop
+POST         /logger/start                     controllers.Logging.start
+POST         /logger/stop                      controllers.Logging.stop
 GET         /logger/isRunning                 controllers.Logging.isRunning
 GET         /logger/latest                    controllers.Logging.latest
 GET         /logHistory.html                  controllers.Logging.logHistory

@@ -1,9 +1,14 @@
-@(ds1820s: List[DS1820], data: List[List[Sample]])(implicit flash: play.api.mvc.Flash)
+@(log: Log, ds1820s: List[DS1820], data: List[List[Sample]])(implicit flash: play.api.mvc.Flash)
 
 @main("Beagle Beer", "Log History") {
 
+  <h2>@log.name</h2>
+  <div>Target Temperature: @log.targetTemperature</div>
+  <div>Started: @log.start</div>
+  <div>Ended: @log.end.getOrElse("--")</div>
+
   @if(data.isEmpty) {
-    <p>No logs found</p>
+    <p>No samples</p>
   } else {
     <div style="width: 66%">
       <table class="table table-striped table-bordered table-condensed">

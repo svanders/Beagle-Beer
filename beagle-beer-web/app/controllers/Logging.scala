@@ -3,13 +3,16 @@ package controllers
 import play.api.mvc.{Action, Controller}
 import org.slf4j.LoggerFactory
 import play.api.db.slick.DB
-import models.{SamplesDb, LogsDb, Sample, DS1820sDb}
+import models._
 
-import controllers.util.FlashScope
-import FlashScope.emptyFlash
+import controllers.util.{FormExtension, FlashScope}
+
 import task.{LoggerTaskManager, LatestValueListener, DebugLogLoggerTaskListener, LoggerTask}
 import play.api.Play.current
 import play.api.libs.json.Json
+import play.api.data.Form
+import play.api.data.Forms._
+import models.Sample
 
 /**
  * Web controller for all Logging actions.
@@ -22,26 +25,46 @@ import play.api.libs.json.Json
 object Logging extends Controller {
 
   def start = Action {
-    if (LoggerTaskManager isRunning) Ok("Already Running")
-    else {
-      LoggerTaskManager.start
-      Ok("Started")
-    }
+    implicit request =>
+      DB.withSession {
+        implicit session =>
+          startForm.bindFromRequest.fold(
+            formWithErrors => BadRequest(views.html.index(formWithErrors, DS1820sDb.filterByEnabled(true))),
+            values => {
+              LoggerTaskManager.start(values._1, values._2)
+              Redirect(routes.Application.index).flashing(FlashScope.success -> "Logging started")
+            })
+      }
   }
 
-  def stop = Action {
-    if (LoggerTaskManager isRunning) {
-      LoggerTaskManager.stop
-      LatestValueListener.clear
-      Ok("Stopped")
-    } else {
-      Ok("Not Running")
-    }
+  val startForm = Form(
+    tuple(
+      "Name / Label" -> nonEmptyText,
+      "Target Temperature" -> number(min = 0, max = 100)
+    ) verifying("Device is not setup ", form => LoggerTaskManager.isInitialised)
+      verifying("Log already in progress", form => !(LoggerTaskManager.isRunning))
+  )
+
+  def stop() = Action {
+    implicit request =>
+      DB.withTransaction {
+        implicit session =>
+          if (LoggerTaskManager.isRunning) {
+            LoggerTaskManager.stop
+            Redirect(routes.Application.index).flashing(FlashScope.success -> "Logging stopped")
+          } else {
+            Redirect(routes.Application.index).flashing(FlashScope.success -> "Logging not running")
+          }
+
+      }
   }
+
+
 
   def latest = Action {
     import models.SamplesJson.sampleWrites
-    val latest: List[Sample] = if (LoggerTaskManager.isInitialised) LatestValueListener.latest // simply get the latest value from loggerTask
+    // simply get the latest value from loggerTask
+    val latest: List[Sample] = if (LoggerTaskManager.isInitialised) LatestValueListener.latest
     else {
       // no values to return
       List()
@@ -56,6 +79,7 @@ object Logging extends Controller {
   }
 
   def logHistory = Action {
+    import FlashScope.emptyFlash
     DB.withSession {
       implicit session =>
         Ok(views.html.logHistory(LogsDb.all))
@@ -63,14 +87,17 @@ object Logging extends Controller {
   }
 
   def logData(logId: Int) = Action {
+    import FlashScope.emptyFlash
     DB.withSession {
       implicit session =>
+        val log = LogsDb.byId(logId)
         val result = SamplesDb.find(logId)
-        Ok(views.html.logData(result._1, result._2))
+        Ok(views.html.logData(log, result._1, result._2))
     }
   }
 
   def logDataJson(logId: Int) = Action {
+    import FlashScope.emptyFlash
     import models.SamplesJson.sampleWrites
     DB.withSession {
       implicit session =>
@@ -80,6 +107,7 @@ object Logging extends Controller {
   }
 
   def logPlot(logId: Int) = Action {
+    import FlashScope.emptyFlash
     Ok(views.html.logPlot(logId))
   }
 }

@@ -56,7 +56,7 @@ class SampleSpec extends Specification {
       }
   }
 
-  def createLog(implicit session: Session): Log = LogsDb.insert(Log(None, new Date, None))
+  def createLog(implicit session: Session): Log = LogsDb.insert(Log(None, "Sample Spec", 20, new Date, None))
 
   def createDs1820(name: String)(implicit session: Session): DS1820 = DS1820sDb.insert(DS1820(None, "/path", name, true, true))
 }

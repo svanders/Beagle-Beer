@@ -2,19 +2,7 @@ $(document).ready(function () {
 
 
 
-  /**
-   * Bind a function to the on/off element links that performs an ajax call to
-   *
-   */
-  $('#startLogger').click(function () {
-    $.ajax(startLoggerUrl)
-    EventBus.publish("loggerRunning")
 
-  });
-  $('#stopLogger').click(function () {
-    $.ajax(stopLoggerUrl)
-    EventBus.publish("loggerStopped")
-  });
 
   EventBus.subscribe("loggerRunning", function () {
       $("#startLogger").hide();

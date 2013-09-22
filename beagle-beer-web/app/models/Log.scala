@@ -13,7 +13,7 @@ import scala.slick.lifted.ColumnOption.DBType
  * Time: 3:51 PM
  * To change this template use File | Settings | File Templates.
  */
-case class Log(id: Option[Int], start: Date, end: Option[Date]) extends Persistent {
+case class Log(id: Option[Int], name: String, targetTemperature: Int, start: Date, end: Option[Date]) extends Persistent {
 
 }
 
@@ -24,13 +24,15 @@ object LogsDb extends Table[Log]("Log") with InsertOrUpdate[Log] {
   /**
    * A singleton Log to use when idling, ie not recording samples to the DB.
    */
-  val ildeLog = Log(Some(-1), new Date(), None)
+  val ildeLog = Log(Some(-1), "idle", -1, new Date(), None)
 
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def name = column[String]("name", O.NotNull)
+  def targetTemperature = column[Int]("targetTemperature", O.NotNull)
   def start = column[Date]("start", O.NotNull)
   def end = column[Date]("end", O.Nullable, DBType("TimeStamp"))
 
-  def * = id.? ~ start ~ end.? <> (Log, Log.unapply _)
+  def * = id.? ~ name ~ targetTemperature ~ start ~ end.? <> (Log, Log.unapply _)
 
 
 
@@ -46,6 +48,11 @@ object LogsDb extends Table[Log]("Log") with InsertOrUpdate[Log] {
   override def insert(log: Log)(implicit session: Session): Log = {
     val id = LogsDb.insertInvoker returning LogsDb.id  insert(log)
     log.copy(id = Some(id))
+  }
+
+  def byId(id: Int)(implicit session: Session): Log = {
+    val query = for (log <- LogsDb if log.id === id) yield log
+    query.first
   }
 
   def all(implicit session: Session): List[Log] = {

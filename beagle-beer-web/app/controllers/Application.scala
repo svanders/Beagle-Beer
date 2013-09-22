@@ -8,20 +8,24 @@ import controllers.util.FlashScope
 import FlashScope.emptyFlash
 import models.{SamplesDb, DS1820sDb, LogsDb}
 import play.api.libs.json.Json
+import task.LoggerTaskManager
+import play.api.data.Form
+import play.api.data.Forms._
 
 object Application extends Controller {
 
 
   def index = Action {
+
     DB.withSession {
       implicit session =>
-        Ok(views.html.index(DS1820sDb.filterByEnabled(true)))
+        Ok(views.html.index(Logging.startForm, DS1820sDb.filterByEnabled(true)))
     }
   }
 
 
-  def status = Action {
 
+  def status = Action {
     DB.withSession {
       implicit session =>
 

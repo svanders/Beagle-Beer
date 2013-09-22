@@ -16,9 +16,9 @@ class LogSpec extends Specification {
 
 
   val testLogs = List(
-    Log(None, "2013-07-16 10:00:00".toDate, None),
-    Log(None, "2013-07-14 10:00:00".toDate, Some("2013-07-14 24:00:00".toDate)),
-    Log(None, "2013-07-15 10:00:00".toDate, Some("2013-07-15 13:00:00".toDate))
+    Log(None, "L1", 1,  "2013-07-16 10:00:00".toDate, None),
+    Log(None, "L2", 2, "2013-07-14 10:00:00".toDate, Some("2013-07-14 24:00:00".toDate)),
+    Log(None, "L3", 3, "2013-07-15 10:00:00".toDate, Some("2013-07-15 13:00:00".toDate))
   )
 
   "Logs" should {
@@ -26,8 +26,8 @@ class LogSpec extends Specification {
       new WithApplication(FakeApplication(additionalConfiguration = inMemoryDatabase())) {
         DB.withSession {
           implicit session =>
-            val found = LogsDb.insert(Log(None, new Date, None))
-            found.id.get must be greaterThan 0
+            val log = LogsDb.insert(Log(None, "Log", 100, new Date, None))
+            log.id.get must be greaterThan 0
         }
       }
 
