@@ -9,11 +9,11 @@ import io.GpioRegistry.{cold, hot}
  */
 object Element extends Controller {
 
-  val log = LoggerFactory.getLogger(this.getClass)
+  val dLog = LoggerFactory.getLogger("Element")
 
   def switch(element: String, command: Boolean) = Action {
 
-    log.debug("switch " + element + " " + command)
+    dLog.debug("switch " + element + " " + command)
     val gpio: Gpio = element match {
       case "hot" => hot
       case "cold" => cold

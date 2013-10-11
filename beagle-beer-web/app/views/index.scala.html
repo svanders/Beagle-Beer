@@ -1,53 +1,57 @@
 @(startForm: Form[(String, Int)], ds1820s: List[DS1820])(implicit flash: play.api.mvc.Flash)
-@import controllers.util.FlashScope
-@import helper.twitterBootstrap._
+  @import controllers.util.FlashScope
+  @import helper.twitterBootstrap._
 
-@main("Beagle Beer", "Home") {
+  @main("Beagle Beer", "Home") {
 
-  <div id="startLogger">
-    @if(startForm.hasErrors) {
-      @helper.alert(FlashScope.error, "Please correct form errors and try again")
-    }
+    @if(ds1820s.isEmpty) {
+      No temperature probes configured please
+      <a href="@routes.DeviceSetup.view()">Setup</a>
+      the device fist. 
+    } else {
+      <div id="startLogger">
+        @if(startForm.hasErrors) {
+          @helper.alert(FlashScope.error, "Please correct form errors and try again")
+        }
 
-    @if(startForm.hasGlobalErrors) {
-      <ul>
-      @for(error <- startForm.globalErrors) {
-        <li>@error.message</li>
+        @if(startForm.hasGlobalErrors) {
+          <ul>
+          @for(error <- startForm.globalErrors) {
+            <li>@error.message</li>
+          }
+          </ul>
+        }
+
+        @helper.form(action = routes.Logging.start) {
+          @helper.inputText(startForm("Name / Label"))
+          @helper.inputText(startForm("Target Temperature"))
+          <button type="submit" class="btn" >Start Logging</button>
+        }
+
+
+      </div>
+
+      <div id="stopLogger">
+      @helper.form(action = routes.Logging.stop) {
+        <button type="submit" class="btn" >Stop Logging</button>
       }
-      </ul>
+      </div>
+
+      <div id="gauges">
+      @for(ds1820 <- ds1820s) {
+        <span id="gauge@ds1820.id" title="@ds1820.name"></span>
+      }
+      </div>
+
+      <div id="chart" class="lineChart"></div>
     }
-
-    @helper.form(action = routes.Logging.start) {
-      @helper.inputText(startForm("Name / Label"))
-      @helper.inputText(startForm("Target Temperature"))
-      <button type="submit" class="btn" >Start Logging</button>
-    }
-
-
-  </div>
-
-  <div id="stopLogger">
-    @helper.form(action = routes.Logging.stop) {
-      <button type="submit" class="btn" >Stop Logging</button>
-    }
-  </div>
-
-  <div id="gauges">
-  @for(ds1820 <- ds1820s) {
-    <span id="gauge@ds1820.id" title="@ds1820.name"></span>
   }
-  </div>
-
-  <div id="chart" class="lineChart"></div>
-
-}
 
   <script type="text/javascript">
-
-    var startLoggerUrl = "@routes.Logging.start"
-    var stopLoggerUrl = "@routes.Logging.stop"
-    var latestValueUrl = "@routes.Logging.latest"
-    var isRunningUrl = "@routes.Logging.isRunning"
+  var startLoggerUrl = " @routes.Logging.start "
+  var stopLoggerUrl = " @routes.Logging.stop "
+  var latestValueUrl = " @routes.Logging.latest "
+  var isRunningUrl = " @routes.Logging.isRunning "
   </script>
 
   <script src="@routes.Assets.at("javascripts/index.js")"></script>

@@ -53,6 +53,11 @@ object DS1820sDb extends Table[DS1820]("DS1820") with InsertOrUpdate[DS1820] {
     query.list
   }
 
+  def getMaster(implicit session: Session): DS1820 = {
+    val query = for (d <- DS1820sDb if d.master === true) yield d
+    query.list.head
+  }
+
   def all(implicit session: Session): List[DS1820] = {
     Query(DS1820sDb).sortBy(_.path).list
   }

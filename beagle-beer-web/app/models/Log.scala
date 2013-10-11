@@ -13,7 +13,7 @@ import scala.slick.lifted.ColumnOption.DBType
  * Time: 3:51 PM
  * To change this template use File | Settings | File Templates.
  */
-case class Log(id: Option[Int], name: String, targetTemperature: Int, start: Date, end: Option[Date]) extends Persistent {
+case class Log(id: Option[Int], name: String, targetTemperature: Float, start: Date, end: Option[Date]) extends Persistent {
 
 }
 
@@ -21,14 +21,9 @@ case class Log(id: Option[Int], name: String, targetTemperature: Int, start: Dat
 
 object LogsDb extends Table[Log]("Log") with InsertOrUpdate[Log] {
 
-  /**
-   * A singleton Log to use when idling, ie not recording samples to the DB.
-   */
-  val ildeLog = Log(Some(-1), "idle", -1, new Date(), None)
-
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
   def name = column[String]("name", O.NotNull)
-  def targetTemperature = column[Int]("targetTemperature", O.NotNull)
+  def targetTemperature = column[Float]("targetTemperature", O.NotNull)
   def start = column[Date]("start", O.NotNull)
   def end = column[Date]("end", O.Nullable, DBType("TimeStamp"))
 

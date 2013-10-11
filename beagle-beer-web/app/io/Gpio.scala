@@ -30,10 +30,10 @@ class Gpio(gpio: String) extends AutoCloseable {
   private var state = false
 
   /** Open the GPIO */
-  close   // close it first to steal it from other processes
-  open
+  this.close   // close it first to steal it from other processes
+  this.open
 
-  private def open = {
+  protected def open = {
     log.debug("opening GPIO " + gpio)
     opened = true
     export.streamWrite(gpio)
@@ -60,10 +60,10 @@ class Gpio(gpio: String) extends AutoCloseable {
   }
 
   def toggle = {
-    if (status) off else on
+    if (isOn) off else on
   }
 
-  def status() = state
+  def isOn() = state
 }
 
 object GpioRegistry {

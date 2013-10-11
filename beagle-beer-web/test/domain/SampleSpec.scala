@@ -44,7 +44,6 @@ class SampleSpec extends Specification {
             val one = SamplesDb.insert(Sample(None, log.id.get, ds1820a.id.get, "2013-07-14 10:00:00".toDate, Some(1F)))
             val two = SamplesDb.insert(Sample(None, log.id.get, ds1820a.id.get, "2013-07-15 10:00:00".toDate, None))
 
-
             val found = SamplesDb.find(log.id.get)
             found._1 must be equalTo (List(ds1820a, ds1820b))
             found._2.map(l => l.map(s => s.value)) must be equalTo (List(

@@ -12,9 +12,9 @@ import ExecutionContext.Implicits.global
 import play.api.Play.current
 
 import org.slf4j.LoggerFactory
-import play.api.data.validation.{Valid, ValidationError, Invalid, Constraint}
 import controllers.util.{FlashScope, FormExtension}
 import task.LoggerTaskManager
+
 
 
 /**
@@ -69,8 +69,9 @@ object DeviceSetup extends Controller {
           DB.withTransaction {
             implicit session =>
               value.foreach(DS1820sDb.insertOrUpdate)
+              LoggerTaskManager.initialise
           }
-          LoggerTaskManager.initialise
+
           Redirect(routes.DeviceSetup.view).flashing(FlashScope.success -> "Device Configuration Saved")
         }
       )

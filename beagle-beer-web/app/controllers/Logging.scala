@@ -31,7 +31,7 @@ object Logging extends Controller {
           startForm.bindFromRequest.fold(
             formWithErrors => BadRequest(views.html.index(formWithErrors, DS1820sDb.filterByEnabled(true))),
             values => {
-              LoggerTaskManager.start(values._1, values._2)
+              LoggerTaskManager.start(values._1, values._2, 10000)
               Redirect(routes.Application.index).flashing(FlashScope.success -> "Logging started")
             })
       }
@@ -69,7 +69,6 @@ object Logging extends Controller {
       // no values to return
       List()
     }
-    println("Latest reading=" + Json.toJson(latest))
     Ok(Json.toJson(latest))
   }
 

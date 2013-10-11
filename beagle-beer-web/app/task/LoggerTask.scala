@@ -4,7 +4,7 @@ import play.api.db.slick.DB
 import models._
 import java.util.Date
 import org.slf4j.LoggerFactory
-import io.DS1820BulkReader
+import io.{GpioRegistry, DS1820BulkReader}
 import play.api.Play.current
 
 
@@ -15,18 +15,20 @@ import models.Log
 import models.DS1820
 import scala.slick.driver.H2Driver.simple._
 
+
 /**
  * When started, records a new Log in the database, records Measurements every 10 seconds,
  * exits when <code>on</code> is set to false.
  */
-class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[LoggerTaskListener]) extends Runnable {
+class LoggerTask(var logIntervalMillis: Int, devices: List[DS1820], var listeners: List[LoggerTaskListener]) extends Runnable {
   require(devices != null)
-  require(listeners != null)
-  require(logIntervalMillis >= 1000)
+
+  def this(devices: List[DS1820]) = this(10000, devices, LoggerTaskManager.idleListeners)
+
 
   val dLog = LoggerFactory.getLogger(this.getClass)
 
-  var logRecord = LogsDb.ildeLog
+  var logRecord: Option[Log] = None
   var endThread = false
 
   def run: Unit = {
@@ -43,7 +45,7 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
       // send each sample through each LoggerTaskListener
       for {
         listener <- listeners
-      } listener.receiveRead(samples)
+      } listener.receiveRead(logRecord, samples)
 
       sleepWithFastWake(logIntervalMillis, 200)
     }
@@ -56,13 +58,20 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
     endThread = true
   }
 
-  def isRunning: Boolean = !logRecord.equals(LogsDb.ildeLog)
+  def isRunning: Boolean = logRecord match {
+    case None => false
+    case Some(_) => true
+  }
 
-  private def createSample(read: (String, Option[Float]), logRecord: Log, now: Date): Sample = {
+  private def createSample(read: (String, Option[Float]), logRecord: Option[Log], now: Date): Sample = {
     val device = devices.find(d => d.path == read._1).get // should always find the correct device
-    // bug here logRecord.id is None when idling
-    val sample = new Sample(None, logRecord.id.get, device.id.get, now, read._2)
+    val logRecordId = logRecord match {
+        case None => -1
+        case Some(lRcd) => lRcd.id.getOrElse(-1)
+      }
+    val sample = new Sample(None, logRecordId, device.id.get, now, read._2)
     return sample
+
   }
 
   /**
@@ -91,12 +100,14 @@ class LoggerTask(logIntervalMillis: Int, devices: List[DS1820], listeners: List[
 object LoggerTaskManager {
 
   val dLog = LoggerFactory.getLogger("LoggerTasks")
+  val idleListeners = List(LatestValueListener)
 
-  private var task: Option[LoggerTask] = None
+
+  private var taskOption: Option[LoggerTask] = None
 
 
   def isInitialised: Boolean = {
-    task match {
+    taskOption match {
       case None => false
       case Some(t) => true
     }
@@ -104,19 +115,27 @@ object LoggerTaskManager {
 
 
   def isRunning: Boolean = {
-    task match {
+    taskOption match {
       case None => false
       case Some(t) => t.isRunning
     }
   }
 
-  def start(name: String, targetTemperature: Int)(implicit session: Session): Unit = {
-    task match {
+  def start(name: String, targetTemperature: Float, logIntervalMillis: Int)(implicit session: Session): Unit = {
+    taskOption match {
       case None => ;
       case Some(t) => {
         if (!t.isRunning) {
           val log = LogsDb.insert(Log(None, name, targetTemperature, new Date, None))
-          t.logRecord = log
+          t.logRecord = Some(log)
+
+          val masterProbe = DS1820sDb.getMaster
+          val runningListeners = List(LatestValueListener,
+                                      SamplePersistingListener,
+                                      new GpioControllingListener(masterProbe.id.get, GpioRegistry.hot, GpioRegistry.cold))
+
+          t.listeners = runningListeners
+          t.logIntervalMillis = logIntervalMillis
           dLog.debug("Started temperature log " + log)
         }
       }
@@ -124,13 +143,15 @@ object LoggerTaskManager {
   }
 
   def stop(implicit session: Session) = {
-    task match {
-      case Some(t) => {
-        if (t.isRunning) {
-          val endedLogRecord = LogsDb.update(t.logRecord.copy(end = Some(new Date)))
+    taskOption match {
+      case Some(task) => {
+        if (task.isRunning) {
+          task.logIntervalMillis = 10000
+          task.listeners = idleListeners
+          val endedLogRecord = LogsDb.update(task.logRecord.get.copy(end = Some(new Date)))
           dLog.debug("Ended temperature log " + endedLogRecord)
         }
-        t.logRecord = LogsDb.ildeLog
+        task.logRecord = None
       }
       case None => ;
     }
@@ -138,7 +159,7 @@ object LoggerTaskManager {
   }
 
   def destroy(implicit session: Session) = {
-    task match {
+    taskOption match {
       case Some(t) => {
         if (t.isRunning) {
           stop
@@ -150,26 +171,19 @@ object LoggerTaskManager {
   }
 
 
-  //  private def loggerTask: Option[LoggerTask] = {
-  //    task match {
-  //      case None => task = initialise // try and create one
-  //      case _ => ;
-  //    }
-  //    task
-  //  }
+  def loggerTask: Option[LoggerTask] = {
+    taskOption
+  }
 
-  def initialise: Unit = {
-    DB.withSession {
-      implicit session =>
-        val devices = DS1820sDb.filterByEnabled(true)
-        if (devices isEmpty) {
-          dLog.error("No DS1820s are configured, unable to create Logger Task")
-          task = None
-        } else {
-          val newTask = new LoggerTask(10000, devices, List(DebugLogLoggerTaskListener, LatestValueListener, SamplePersistingListener))
-          new Thread(newTask).start
-          task = Some(newTask)
-        }
+  def initialise(implicit session: Session): Unit = {
+    val devices = DS1820sDb.filterByEnabled(true)
+    if (devices isEmpty) {
+      dLog.error("No DS1820s are configured, unable to create Logger Task")
+      taskOption = None
+    } else {
+      val newTask = new LoggerTask(devices);
+      new Thread(newTask).start
+      taskOption = Some(newTask)
     }
   }
 
