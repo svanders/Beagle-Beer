@@ -25,8 +25,8 @@ class ControllerTaskSpec extends Specification {
 
   // we have a target of 20
 
-  "The controller" should {
-    "not control when idling" in {
+  "When idling The controller" should {
+    "not control" in {
       hot.off
       cold.on
       val lowMasterSample = masterSample.copy(value = Some(0))
@@ -35,54 +35,87 @@ class ControllerTaskSpec extends Specification {
       hot.isOn must beFalse
       cold.isOn must beTrue
     }
+  }
 
-    "control when not idling" in {
+  "When not not idling and aiming for 20 +/- 1" should {
+    
+    "turn on heater below 19" in {
       hot.off
       cold.off
-      val lowMasterSample = masterSample.copy(value = Some(0))
-      // not idling a master sample of 0 will turn the heater on
-      control.receiveRead(Some(log), List(lowMasterSample, otherSample))
-      hot.isOn must beTrue
-      cold.isOn must beFalse
-    }
-
-    "not control when not idling and in range (slightly cool)" in {
-      hot.off
-      cold.on
-      val lowMasterSample = masterSample.copy(value = Some(19.0f))
-      control.receiveRead(Some(log), List(lowMasterSample, otherSample))
-      hot.isOn must beFalse
-      cold.isOn must beFalse
-    }
-
-    "not control when not idling and in range (slightly warm)" in {
-      hot.on
-      cold.off
-      val highMasterSample = masterSample.copy(value = Some(21.0f))
-      control.receiveRead(Some(log), List(highMasterSample, otherSample))
-      hot.isOn must beFalse
-      cold.isOn must beFalse
-    }
-
-    "turn on heater when not idling and temperature is too cool" in {
-      hot.off
-      cold.on
       val lowMasterSample = masterSample.copy(value = Some(18.9f))
       control.receiveRead(Some(log), List(lowMasterSample, otherSample))
       hot.isOn must beTrue
       cold.isOn must beFalse
     }
 
-    "turn on cooler on when not idling and temperature is too hot" in {
+    "leave heater on at 19.9 when already heating" in {
       hot.on
+      cold.off
+      val lowMasterSample = masterSample.copy(value = Some(19.9f))
+      control.receiveRead(Some(log), List(lowMasterSample, otherSample))
+      hot.isOn must beTrue
+      cold.isOn must beFalse
+    }
+    
+    "turn heater off at 20 when heating" in {
+      hot.on
+      cold.off
+      val lowMasterSample =masterSample.copy(value = Some(20f))
+      control.receiveRead(Some(log), List(lowMasterSample, otherSample))
+      hot.isOn must beFalse
+      cold.isOn must beFalse
+    } 
+    
+    "leave cooler off at 20.9 when not cooling" in {
+      hot.off
+      cold.off
+      val lowMasterSample = masterSample.copy(value = Some(20.9f))
+      control.receiveRead(Some(log), List(lowMasterSample, otherSample))
+      hot.isOn must beFalse
+      cold.isOn must beFalse
+    }
+    
+    "turn cooler on at 21.1" in {
+      hot.off
       cold.off
       val lowMasterSample = masterSample.copy(value = Some(21.1f))
       control.receiveRead(Some(log), List(lowMasterSample, otherSample))
       hot.isOn must beFalse
       cold.isOn must beTrue
     }
+    
+    "leave cooler on at 20.5 when not cooling" in {
+      hot.off
+      cold.on
+      val lowMasterSample = masterSample.copy(value = Some(20.5f))
+      control.receiveRead(Some(log), List(lowMasterSample, otherSample))
+      hot.isOn must beFalse
+      cold.isOn must beTrue
+    }
+    
+    "turn cooler off at 20 when cooling" in  {
+      hot.off
+      cold.on
+      val lowMasterSample = masterSample.copy(value = Some(20f))
+      control.receiveRead(Some(log), List(lowMasterSample, otherSample))
+      hot.isOn must beFalse
+      cold.isOn must beFalse
+    }
+    
+    "leave heater off at 19.5 when not heating" in {
+      hot.off
+      cold.off
+      val lowMasterSample = masterSample.copy(value = Some(19.5f))
+      control.receiveRead(Some(log), List(lowMasterSample, otherSample))
+      hot.isOn must beFalse
+      cold.isOn must beFalse
+    }
+  
+  }
+  
 
-    "turn off heater and cooler when temperature probes are malfunctioning" in {
+  "When probes are malfunctioning" should { 
+    "turn off heater and cooler" in {
       hot.on
       cold.on
       val lowMasterSample = masterSample.copy(value = None)
@@ -90,31 +123,45 @@ class ControllerTaskSpec extends Specification {
       hot.isOn must beFalse
       cold.isOn must beFalse
     }
-
   }
-
-
+  
+  "When in an unexpected state" should {
+  
+     "turn heater and cooler off at 20 when cooling and heating" in  {
+      hot.on
+      cold.on
+      val lowMasterSample = masterSample.copy(value = Some(20f))
+      control.receiveRead(Some(log), List(lowMasterSample, otherSample))
+      hot.isOn must beFalse
+      cold.isOn must beFalse
+    }
+  }
+  
 }
 
-
+/**
+ * A mock Gpio implementation for use in tests.
+ */
 class MockGpio(gpio: String) extends Gpio(gpio) {
 
   var state = false;
 
-  override protected def open = {}
-  override def close = {}
+  override protected def open: Unit = {}
+  override def close: Unit = {}
 
-  override def on {
+  override def on: Unit = {
     state = true
   }
 
-  override def off {
+  override def off: Unit = {
     state = false
   }
 
-  override def toggle {
+  override def toggle: Unit = {
     state = !state
   }
 
   override def isOn(): Boolean = state
+  
+ // override def isOff(): Boolean = !state
 }

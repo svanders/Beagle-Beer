@@ -14,7 +14,6 @@ class Gpio(gpio: String) extends AutoCloseable {
   // Dev note: Strangely using the scala Path class to write to the io devices
   // doesn't work so using output streams via the StringStream class
 
-
   val log = LoggerFactory.getLogger(this.getClass)
 
   /** Write the GPIO number to export open it. */
@@ -33,13 +32,13 @@ class Gpio(gpio: String) extends AutoCloseable {
   this.close   // close it first to steal it from other processes
   this.open
 
-  protected def open = {
+  protected def open: Unit = {
     log.debug("opening GPIO " + gpio)
     opened = true
     export.streamWrite(gpio)
   }
 
-  override def close = {
+  override def close: Unit = {
     if (new File(unexport + "/" + gpio).exists())  {
       unexport.streamWrite(gpio)
     }
@@ -47,23 +46,25 @@ class Gpio(gpio: String) extends AutoCloseable {
   }
 
 
-  def on = {
+  def on: Unit = {
     require(opened, "GPIO " + gpio + " must be opened before it can be written to")
     path.streamWrite("high")
     state = true
   }
 
-  def off = {
+  def off: Unit = {
     require(opened, "GPIO " + gpio + " must be opened before it can be written to")
     path.streamWrite("low")
     state = true
   }
 
-  def toggle = {
+  def toggle: Unit = {
     if (isOn) off else on
   }
 
-  def isOn() = state
+  def isOn(): Boolean = state
+  
+  def isOff(): Boolean = !state
 }
 
 object GpioRegistry {

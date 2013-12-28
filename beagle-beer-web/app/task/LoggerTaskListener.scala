@@ -66,7 +66,8 @@ object SamplePersistingListener extends LoggerTaskListener {
 class GpioControllingListener(masterProbeId: Int, hot: Gpio, cold: Gpio) extends LoggerTaskListener {
 
   val dLog = LoggerFactory.getLogger(this.getClass)
-
+  val tolerance = 1
+  
   override def receiveRead(logOption: Option[Log], samples: List[Sample]) {
     logOption match {
       case None => dLog.debug("idling");
@@ -90,15 +91,22 @@ class GpioControllingListener(masterProbeId: Int, hot: Gpio, cold: Gpio) extends
         cold.off
       }
       case Some(temp) => {
-        if (temp < targetTemp - 1) {
+        if (temp < targetTemp - tolerance) {
           dLog.debug("Temperature low, turning on heater")
           hot.on
           cold.off
-        } else if (temp > targetTemp + 1) {
+        } else if (temp > targetTemp + tolerance) {
           dLog.debug("Temperature high, turning on cooler")
           hot.off
           cold.on
-        } else {
+        } else if (temp >= targetTemp && hot.isOn) {
+          hot.off
+          cold.off	    
+        } else if (temp <= targetTemp && cold.isOn) {
+          hot.off
+          cold.off	    
+        }
+        else {
           dLog.debug("Temperature in range")
         }
       }

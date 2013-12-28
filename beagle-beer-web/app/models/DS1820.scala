@@ -26,8 +26,6 @@ object DS1820sDb extends Table[DS1820]("DS1820") with InsertOrUpdate[DS1820] {
   def master = column[Boolean]("master", O.NotNull)
 
   def * = id.? ~ path ~ name ~ enabled ~ master <> (DS1820, DS1820.unapply _)
-//  def forInsert =  path ~ name ~ enabled ~ master <> ({t => DS1820(None, t._1, t._2, t._3, t._4)},
-//                                                      {d: DS1820 => Some((d.path, d.name, d.enabled, d.master))})
 
   def table = DS1820sDb
 
